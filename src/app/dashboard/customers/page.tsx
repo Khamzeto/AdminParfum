@@ -1,151 +1,412 @@
-import * as React from 'react';
-import type { Metadata } from 'next';
-import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import { Download as DownloadIcon } from '@phosphor-icons/react/dist/ssr/Download';
-import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
-import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
-import dayjs from 'dayjs';
+'use client';
 
-import { config } from '@/config';
-import { CustomersFilters } from '@/components/dashboard/customer/customers-filters';
-import { CustomersTable } from '@/components/dashboard/customer/customers-table';
-import type { Customer } from '@/components/dashboard/customer/customers-table';
+import { useEffect, useState } from 'react';
+import {
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Pagination,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import axios from 'axios';
 
-export const metadata = { title: `Customers | Dashboard | ${config.site.name}` } satisfies Metadata;
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  roles?: string[]; // Добавляем поле ролей
+}
 
-const customers = [
-  {
-    id: 'USR-010',
-    name: 'Alcides Antonio',
-    avatar: '/assets/avatar-10.png',
-    email: 'alcides.antonio@devias.io',
-    phone: '908-691-3242',
-    address: { city: 'Madrid', country: 'Spain', state: 'Comunidad de Madrid', street: '4158 Hedge Street' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-009',
-    name: 'Marcus Finn',
-    avatar: '/assets/avatar-9.png',
-    email: 'marcus.finn@devias.io',
-    phone: '415-907-2647',
-    address: { city: 'Carson City', country: 'USA', state: 'Nevada', street: '2188 Armbrester Drive' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-008',
-    name: 'Jie Yan',
-    avatar: '/assets/avatar-8.png',
-    email: 'jie.yan.song@devias.io',
-    phone: '770-635-2682',
-    address: { city: 'North Canton', country: 'USA', state: 'Ohio', street: '4894 Lakeland Park Drive' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-007',
-    name: 'Nasimiyu Danai',
-    avatar: '/assets/avatar-7.png',
-    email: 'nasimiyu.danai@devias.io',
-    phone: '801-301-7894',
-    address: { city: 'Salt Lake City', country: 'USA', state: 'Utah', street: '368 Lamberts Branch Road' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-006',
-    name: 'Iulia Albu',
-    avatar: '/assets/avatar-6.png',
-    email: 'iulia.albu@devias.io',
-    phone: '313-812-8947',
-    address: { city: 'Murray', country: 'USA', state: 'Utah', street: '3934 Wildrose Lane' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-005',
-    name: 'Fran Perez',
-    avatar: '/assets/avatar-5.png',
-    email: 'fran.perez@devias.io',
-    phone: '712-351-5711',
-    address: { city: 'Atlanta', country: 'USA', state: 'Georgia', street: '1865 Pleasant Hill Road' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
+const UsersPage = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
 
-  {
-    id: 'USR-004',
-    name: 'Penjani Inyene',
-    avatar: '/assets/avatar-4.png',
-    email: 'penjani.inyene@devias.io',
-    phone: '858-602-3409',
-    address: { city: 'Berkeley', country: 'USA', state: 'California', street: '317 Angus Road' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-003',
-    name: 'Carson Darrin',
-    avatar: '/assets/avatar-3.png',
-    email: 'carson.darrin@devias.io',
-    phone: '304-428-3097',
-    address: { city: 'Cleveland', country: 'USA', state: 'Ohio', street: '2849 Fulton Street' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-002',
-    name: 'Siegbert Gottfried',
-    avatar: '/assets/avatar-2.png',
-    email: 'siegbert.gottfried@devias.io',
-    phone: '702-661-1654',
-    address: { city: 'Los Angeles', country: 'USA', state: 'California', street: '1798 Hickory Ridge Drive' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-001',
-    name: 'Miron Vitold',
-    avatar: '/assets/avatar-1.png',
-    email: 'miron.vitold@devias.io',
-    phone: '972-333-4106',
-    address: { city: 'San Diego', country: 'USA', state: 'California', street: '75247' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-] satisfies Customer[];
+  // Состояния для редактирования пользователя
+  const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string>(''); // Для роли
 
-export default function Page(): React.JSX.Element {
-  const page = 0;
-  const rowsPerPage = 5;
+  // Состояния для добавления пользователя
+  const [openAddDialog, setOpenAddDialog] = useState<boolean>(false);
+  const [newUser, setNewUser] = useState<User | null>(null);
 
-  const paginatedCustomers = applyPagination(customers, page, rowsPerPage);
+  // Параметры пагинации
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const itemsPerPage = 20;
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('http://81.29.136.136:3001/users', {
+        params: {
+          page,
+          limit: itemsPerPage,
+        },
+      });
+
+      setUsers(response.data);
+      setTotalPages(response.data.totalPages);
+    } catch (error) {
+      console.error('Ошибка при получении данных:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [page]);
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelecteds = users.map((user) => user._id);
+      setSelected(newSelecteds);
+      return;
+    }
+    setSelected([]);
+  };
+
+  const handleSelect = (id: string) => {
+    const selectedIndex = selected.indexOf(id);
+    let newSelected: string[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+    }
+
+    setSelected(newSelected);
+  };
+
+  const isSelected = (id: string) => selected.indexOf(id) !== -1;
+
+  const handleDelete = async () => {
+    if (selected.length === 0 && !deleteUserId) {
+      return;
+    }
+
+    try {
+      if (deleteUserId) {
+        await axios.delete(`http://81.29.136.136:3001/users/${deleteUserId}`);
+      } else {
+        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/users/${id}`)));
+      }
+      fetchUsers();
+      setSelected([]);
+      setDeleteUserId(null);
+    } catch (error) {
+      console.error('Ошибка при удалении пользователей:', error);
+    } finally {
+      setOpenDeleteDialog(false);
+    }
+  };
+
+  const handleDeleteIconClick = (id: string) => {
+    setDeleteUserId(id);
+    setOpenDeleteDialog(true);
+  };
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
+  const handleEditClick = async (userId: string) => {
+    setOpenEditDialog(true);
+    setEditingUser(null);
+    try {
+      const response = await axios.get(`http://81.29.136.136:3001/users/${userId}`);
+      setEditingUser(response.data);
+      setRole(response.data.roles ? response.data.roles.join(', ') : ''); // Устанавливаем роль для редактирования
+    } catch (error) {
+      console.error('Ошибка при получении данных пользователя:', error);
+      setOpenEditDialog(false);
+    }
+  };
+
+  const handleEditChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (editingUser) {
+      const { name, value } = event.target;
+      if (name === 'roles') {
+        setRole(value); // Обновляем роль отдельно
+      } else {
+        setEditingUser({
+          ...editingUser,
+          [name]: value,
+        });
+      }
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (editingUser) {
+      try {
+        await axios.put(`http://81.29.136.136:3001/users/${editingUser._id}`, editingUser);
+        // После сохранения отправляем запрос на обновление роли
+        if (role) {
+          await axios.post('http://81.29.136.136:3001/auth/assign-role', {
+            userId: editingUser._id,
+            role,
+          });
+        }
+        setOpenEditDialog(false);
+        fetchUsers();
+      } catch (error) {
+        console.error('Ошибка при сохранении изменений:', error);
+      }
+    }
+  };
+
+  const handleAddClick = () => {
+    setNewUser({
+      _id: '',
+      username: '',
+      email: '',
+      createdAt: new Date().toISOString(),
+    });
+    setOpenAddDialog(true);
+  };
+
+  const handleAddChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (newUser) {
+      const { name, value } = event.target;
+      setNewUser({
+        ...newUser,
+        [name]: value,
+      });
+    }
+  };
+
+  const handleAddUser = async () => {
+    if (newUser) {
+      try {
+        await axios.post('http://81.29.136.136:3001/users', newUser);
+        setOpenAddDialog(false);
+        fetchUsers();
+      } catch (error) {
+        console.error('Ошибка при добавлении пользователя:', error);
+      }
+    }
+  };
 
   return (
-    <Stack spacing={3}>
-      <Stack direction="row" spacing={3}>
-        <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
-          <Typography variant="h4">Customers</Typography>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Button color="inherit" startIcon={<UploadIcon fontSize="var(--icon-fontSize-md)" />}>
-              Import
-            </Button>
-            <Button color="inherit" startIcon={<DownloadIcon fontSize="var(--icon-fontSize-md)" />}>
-              Export
-            </Button>
-          </Stack>
-        </Stack>
-        <div>
-          <Button startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} variant="contained">
-            Add
-          </Button>
-        </div>
-      </Stack>
-      <CustomersFilters />
-      <CustomersTable
-        count={paginatedCustomers.length}
-        page={page}
-        rows={paginatedCustomers}
-        rowsPerPage={rowsPerPage}
-      />
-    </Stack>
-  );
-}
+    <div style={{ padding: '20px' }}>
+      <Typography variant="h4" gutterBottom>
+        Пользователи
+      </Typography>
 
-function applyPagination(rows: Customer[], page: number, rowsPerPage: number): Customer[] {
-  return rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-}
+      <Box display="flex" gap={2} style={{ marginTop: '20px' }}>
+        <Button variant="contained" color="primary" startIcon={<Plus size={20} />} onClick={handleAddClick}>
+          Добавить пользователя
+        </Button>
+
+        <Button
+          variant="contained"
+          color="secondary"
+          disabled={selected.length === 0}
+          onClick={() => setOpenDeleteDialog(true)}
+        >
+          Удалить выбранных пользователей
+        </Button>
+      </Box>
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          <TableContainer component={Paper} style={{ marginTop: '20px' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={selected.length > 0 && selected.length < (users?.length || 0)}
+                      checked={(users?.length || 0) > 0 && selected.length === (users?.length || 0)}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
+                  <TableCell>Имя</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Дата создания</TableCell>
+                  <TableCell>Роли</TableCell>
+                  <TableCell align="right">Действия</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users?.map((user) => (
+                  <TableRow key={user._id} selected={isSelected(user._id)}>
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={isSelected(user._id)} onChange={() => handleSelect(user._id)} />
+                    </TableCell>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{user.roles ? user.roles.join(', ') : 'Нет ролей'}</TableCell>
+                    <TableCell align="right">
+                      <IconButton color="primary" aria-label="edit" onClick={() => handleEditClick(user._id)}>
+                        <PencilSimple size={20} />
+                      </IconButton>
+                      <IconButton color="secondary" aria-label="delete" onClick={() => handleDeleteIconClick(user._id)}>
+                        <Trash size={20} />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Box display="flex" justifyContent="center" my={2}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+              showFirstButton
+              showLastButton
+            />
+          </Box>
+        </>
+      )}
+
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+        <DialogTitle>Удалить пользователя</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Вы уверены, что хотите удалить выбранных пользователей?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
+            Отмена
+          </Button>
+          <Button onClick={handleDelete} color="secondary">
+            Удалить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Диалог редактирования */}
+      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Редактировать пользователя</DialogTitle>
+        {editingUser ? (
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Имя"
+                  name="username"
+                  variant="outlined"
+                  value={editingUser.username}
+                  onChange={handleEditChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  variant="outlined"
+                  value={editingUser.email}
+                  onChange={handleEditChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Роль"
+                  name="roles"
+                  variant="outlined"
+                  value={role} // Преобразуем строку ролей
+                  onChange={handleEditChange}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+        ) : (
+          <DialogContent>
+            <Box display="flex" justifyContent="center" my={4}>
+              <CircularProgress />
+            </Box>
+          </DialogContent>
+        )}
+        <DialogActions>
+          <Button onClick={() => setOpenEditDialog(false)} color="primary">
+            Отмена
+          </Button>
+          <Button onClick={handleSaveChanges} color="secondary" disabled={!editingUser}>
+            Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Диалог добавления */}
+      <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Добавить пользователя</DialogTitle>
+        {newUser ? (
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Имя"
+                  name="username"
+                  variant="outlined"
+                  value={newUser.username}
+                  onChange={handleAddChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  variant="outlined"
+                  value={newUser.email}
+                  onChange={handleAddChange}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+        ) : null}
+        <DialogActions>
+          <Button onClick={() => setOpenAddDialog(false)} color="primary">
+            Отмена
+          </Button>
+          <Button onClick={handleAddUser} color="secondary">
+            Добавить
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+};
+
+export default UsersPage;

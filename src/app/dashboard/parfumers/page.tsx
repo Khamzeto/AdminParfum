@@ -2,30 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import {
+  Box,
   Button,
   CircularProgress,
-  IconButton,
-  Typography,
-  TextField,
-  Grid,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Paper,
-  Box,
+  Grid,
+  IconButton,
   Pagination,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
+  Typography,
 } from '@mui/material';
-
-import axios from 'axios';
 import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import axios from 'axios';
 
 interface Parfumer {
   _id: string;
@@ -43,7 +42,12 @@ const ParfumersPage = () => {
 
   // Состояния для редактирования парфюмера
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
-  const [editingParfumer, setEditingParfumer] = useState<{ newName: string, newSlug?: string, newRuName?: string, _id: string } | null>(null);
+  const [editingParfumer, setEditingParfumer] = useState<{
+    newName: string;
+    newSlug?: string;
+    newRuName?: string;
+    _id: string;
+  } | null>(null);
 
   // Состояния для добавления парфюмера
   const [openAddDialog, setOpenAddDialog] = useState<boolean>(false);
@@ -96,10 +100,7 @@ const ParfumersPage = () => {
     } else if (selectedIndex === selected.length - 1) {
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
 
     setSelected(newSelected);
@@ -116,9 +117,7 @@ const ParfumersPage = () => {
       if (deleteParfumerId) {
         await axios.delete(`http://81.29.136.136:3001/parfumers/${deleteParfumerId}`);
       } else {
-        await Promise.all(
-          selected.map((id) => axios.delete(`http://81.29.136.136:3001/parfumers/${id}`))
-        );
+        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/parfumers/${id}`)));
       }
       fetchParfumers();
       setSelected([]);
@@ -164,9 +163,7 @@ const ParfumersPage = () => {
     }
   };
 
-  const handleEditChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
+  const handleEditChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     if (editingParfumer) {
       const { name, value } = event.target;
       setEditingParfumer({
@@ -180,9 +177,9 @@ const ParfumersPage = () => {
     if (editingParfumer) {
       try {
         await axios.put(`http://81.29.136.136:3001/parfumers/${editingParfumer._id}`, {
-          original: editingParfumer.newName,
-          slug: editingParfumer.newSlug,
-          original_ru: editingParfumer.newRuName,  // сохраняем русское имя
+          newName: editingParfumer.newName,
+          newSlug: editingParfumer.newSlug,
+          newRuName: editingParfumer.newRuName, // сохраняем русское имя
         });
         setOpenEditDialog(false);
         fetchParfumers();
@@ -190,8 +187,7 @@ const ParfumersPage = () => {
         console.error('Ошибка при сохранении изменений:', error);
       }
     }
-};
-
+  };
 
   const handleAddClick = () => {
     setNewParfumer({
@@ -203,9 +199,7 @@ const ParfumersPage = () => {
     setOpenAddDialog(true);
   };
 
-  const handleAddChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
+  const handleAddChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     if (newParfumer) {
       const { name, value } = event.target;
       setNewParfumer({
@@ -218,7 +212,7 @@ const ParfumersPage = () => {
   const handleAddParfumer = async () => {
     if (newParfumer) {
       try {
-        await axios.post('http://81.29.136.136:3001/parfumers', {
+        await axios.post('http://81.29.136.136:3001/parfumers/parfumers', {
           original: newParfumer.original,
           slug: newParfumer.slug,
           original_ru: newParfumer.original_ru, // передаем русское имя
@@ -253,12 +247,7 @@ const ParfumersPage = () => {
       </form>
 
       <Box display="flex" gap={2} style={{ marginTop: '20px' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddClick}
-        >
+        <Button variant="contained" color="primary" startIcon={<Plus size={20} />} onClick={handleAddClick}>
           Добавить парфюмера
         </Button>
 
@@ -296,11 +285,7 @@ const ParfumersPage = () => {
                       <TableCell>{parfumer.original_ru || '—'}</TableCell> {/* выводим русское имя */}
                       <TableCell>{parfumer.slug}</TableCell>
                       <TableCell align="right">
-                        <IconButton
-                          color="primary"
-                          aria-label="edit"
-                          onClick={() => handleEditClick(parfumer._id)}
-                        >
+                        <IconButton color="primary" aria-label="edit" onClick={() => handleEditClick(parfumer._id)}>
                           <PencilSimple size={20} />
                         </IconButton>
                         <IconButton

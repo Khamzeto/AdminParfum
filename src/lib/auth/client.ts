@@ -1,20 +1,8 @@
 'use client';
 
+import axios from 'axios';
+
 import type { User } from '@/types/user';
-
-function generateToken(): string {
-  const arr = new Uint8Array(12);
-  window.crypto.getRandomValues(arr);
-  return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
-}
-
-const user = {
-  id: 'USR-000',
-  avatar: '/assets/avatar.png',
-  firstName: 'Sofia',
-  lastName: 'Rivers',
-  email: 'sofia@devias.io',
-} satisfies User;
 
 export interface SignUpParams {
   firstName: string;
@@ -37,60 +25,64 @@ export interface ResetPasswordParams {
 }
 
 class AuthClient {
-  async signUp(_: SignUpParams): Promise<{ error?: string }> {
-    // Make API request
+  // Базовый URL для API
+  private baseUrl = 'https://hltback.parfumetrika.ru/auth';
 
-    // We do not handle the API, so we'll just generate a token and store it in localStorage.
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
-    return {};
+  // Регистрация
+  async signUp(params: SignUpParams): Promise<{ error?: string }> {
+    try {
+      const response = await axios.post(`${this.baseUrl}/signup`, params);
+      localStorage.setItem('auth-token', response.data.token); // Сохраняем токен
+      return {};
+    } catch (error: any) {
+      return { error: error.response?.data?.message || 'Ошибка при регистрации' };
+    }
   }
 
-  async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
-    return { error: 'Social authentication not implemented' };
+  // Вход через OAuth
+  async signInWithOAuth(params: SignInWithOAuthParams): Promise<{ error?: string }> {
+    return { error: 'OAuth авторизация не реализована' }; // Пока заглушка
   }
 
+  // Вход по паролю
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
-    const { email, password } = params;
-
-    // Make API request
-
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-      return { error: 'Invalid credentials' };
+    try {
+      const response = await axios.post(`${this.baseUrl}/login`, params);
+      localStorage.setItem('auth-token', response.data.token); // Сохраняем токен
+      return {};
+    } catch (error: any) {
+      return { error: error.response?.data?.message || 'Неверные учетные данные' };
     }
-
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
-    return {};
   }
 
-  async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Password reset not implemented' };
+  // Сброс пароля
+  async resetPassword(params: ResetPasswordParams): Promise<{ error?: string }> {
+    try {
+      await axios.post(`${this.baseUrl}/reset-password`, params);
+      return {};
+    } catch (error: any) {
+      return { error: error.response?.data?.message || 'Ошибка при сбросе пароля' };
+    }
   }
 
-  async updatePassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Update reset not implemented' };
-  }
-
+  // Получение данных пользователя
   async getUser(): Promise<{ data?: User | null; error?: string }> {
-    // Make API request
+    try {
+      const token = localStorage.getItem('auth-token');
+      if (!token) return { data: null };
 
-    // We do not handle the API, so just check if we have a token in localStorage.
-    const token = localStorage.getItem('custom-auth-token');
-
-    if (!token) {
-      return { data: null };
+      const response = await axios.get(`${this.baseUrl}/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return { data: response.data };
+    } catch (error: any) {
+      return { error: 'Ошибка при получении данных пользователя' };
     }
-
-    return { data: user };
   }
 
+  // Выход
   async signOut(): Promise<{ error?: string }> {
-    localStorage.removeItem('custom-auth-token');
-
+    localStorage.removeItem('auth-token');
     return {};
   }
 }

@@ -2,14 +2,13 @@ import type { NavItemConfig } from '@/types/nav';
 import { paths } from '@/paths';
 
 export const navItems = [
-  { key: 'overview', title: 'Overview', href: paths.dashboard.overview, icon: 'chart-pie' },
-  { key: 'customers', title: 'Customers', href: paths.dashboard.customers, icon: 'users' },
-  { key: 'perfumes', title: 'Perfumes', href: paths.dashboard.perfumes, icon: 'perfume' },
-  { key: 'notes', title: 'Notes', href: paths.dashboard.notes, icon: 'perfume' },
-  { key: 'parfumers', title: 'Parfumers', href: paths.dashboard.parfumers, icon: 'perfume' },
-  { key: 'integrations', title: 'Integrations', href: paths.dashboard.integrations, icon: 'plugs-connected' },
-  { key: 'settings', title: 'Settings', href: paths.dashboard.settings, icon: 'gear-six' },
-  { key: 'account', title: 'Account', href: paths.dashboard.account, icon: 'user' },
-  { key: 'error', title: 'Error', href: paths.errors.notFound, icon: 'x-square' },
-
+  { key: 'customers', title: 'Пользователи', href: paths.dashboard.customers },
+  { key: 'perfumes', title: 'Парфюмы', href: paths.dashboard.perfumes },
+  { key: 'brands', title: 'Бренды', href: paths.dashboard.brands },
+  { key: 'notes', title: 'Ноты', href: paths.dashboard.notes },
+  { key: 'parfumers', title: 'Парфюмеры', href: paths.dashboard.parfumers },
+  { key: 'requests', title: 'Запросы', href: paths.dashboard.requests },
+  { key: 'gallery', title: 'Галерея', href: paths.dashboard.gallery },
+  { key: 'posts', title: 'Посты', href: paths.dashboard.posts },
+  { key: 'news', title: 'Новости', href: paths.dashboard.news },
 ] satisfies NavItemConfig[];

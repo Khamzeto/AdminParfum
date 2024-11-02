@@ -7,10 +7,15 @@ export const paths = {
     customers: '/dashboard/customers',
     integrations: '/dashboard/integrations',
     perfumes: '/dashboard/perfumes',
+    requests: '/dashboard/requests',
+    gallery: '/dashboard/gallery',
+    posts: '/dashboard/posts',
+    brands: '/dashboard/brands',
     notes: '/dashboard/notes',
+    news: '/dashboard/news',
     parfumers: '/dashboard/parfumers',
+    users: '/dashboard/users',
     settings: '/dashboard/settings',
-    
   },
   errors: { notFound: '/errors/not-found' },
 } as const;

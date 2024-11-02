@@ -2,35 +2,37 @@
 
 import { useEffect, useState } from 'react';
 import {
+  Box,
   Button,
   Checkbox,
   CircularProgress,
-  IconButton,
-  Typography,
-  TextField,
-  Grid,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Paper,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
-  Select,
   MenuItem,
-  Box,
   Pagination,
+  Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
+  Typography,
 } from '@mui/material';
-
-import axios from 'axios';
 import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
 import NoteSearchAutocomplete from '@/components/dashboard/perfumes/notes'; // Компонент для поиска нот
 
 interface Perfume {
@@ -103,7 +105,7 @@ const PerfumesPage = () => {
         },
       });
 
-      setPerfumes(response.data.perfumes);
+      setPerfumes(response.data.results);
       setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error('Ошибка при получении данных:', error);
@@ -136,10 +138,7 @@ const PerfumesPage = () => {
     } else if (selectedIndex === selected.length - 1) {
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
 
     setSelected(newSelected);
@@ -156,9 +155,7 @@ const PerfumesPage = () => {
       if (deletePerfumeId) {
         await axios.delete(`http://81.29.136.136:3001/perfumes/${deletePerfumeId}`);
       } else {
-        await Promise.all(
-          selected.map((id) => axios.delete(`http://81.29.136.136:3001/perfumes/${id}`))
-        );
+        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/perfumes/${id}`)));
       }
       fetchPerfumes();
       setSelected([]);
@@ -204,9 +201,7 @@ const PerfumesPage = () => {
     }
   };
 
-  const handleEditChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
+  const handleEditChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     if (editingPerfume) {
       const { name, value } = event.target;
       setEditingPerfume({
@@ -237,12 +232,7 @@ const PerfumesPage = () => {
 
   const generateObjectId = (): string => {
     const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
-    return (
-      timestamp +
-      'xxxxxxxxxxxxxxxx'.replace(/[x]/g, () =>
-        ((Math.random() * 16) | 0).toString(16)
-      ).toLowerCase()
-    );
+    return timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, () => ((Math.random() * 16) | 0).toString(16)).toLowerCase();
   };
 
   const handleAddClick = () => {
@@ -270,9 +260,7 @@ const PerfumesPage = () => {
     setOpenAddDialog(true);
   };
 
-  const handleAddChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
+  const handleAddChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     if (newPerfume) {
       const { name, value } = event.target;
       setNewPerfume({
@@ -349,12 +337,7 @@ const PerfumesPage = () => {
       </form>
 
       <Box display="flex" gap={2} style={{ marginTop: '20px' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddClick}
-        >
+        <Button variant="contained" color="primary" startIcon={<Plus size={20} />} onClick={handleAddClick}>
           Добавить парфюм
         </Button>
 
@@ -381,7 +364,7 @@ const PerfumesPage = () => {
                   <TableCell padding="checkbox">
                     <Checkbox
                       indeterminate={selected.length > 0 && selected.length < perfumes.length}
-                      checked={perfumes.length > 0 && selected.length === perfumes.length}
+                      checked={perfumes?.length > 0 && selected.length === perfumes.length}
                       onChange={handleSelectAll}
                     />
                   </TableCell>
@@ -418,11 +401,7 @@ const PerfumesPage = () => {
                       {perfume.rating_value} ({perfume.rating_count} отзывов)
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        aria-label="edit"
-                        onClick={() => handleEditClick(perfume.perfume_id)}
-                      >
+                      <IconButton color="primary" aria-label="edit" onClick={() => handleEditClick(perfume.perfume_id)}>
                         <PencilSimple size={20} />
                       </IconButton>
                       <IconButton
