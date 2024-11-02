@@ -31,7 +31,7 @@ class AuthClient {
   // Регистрация
   async signUp(params: SignUpParams): Promise<{ error?: string }> {
     try {
-      const response = await axios.post(`${this.baseUrl}/signup`, params);
+      const response = await axios.post(`${this.baseUrl}/admin`, params);
       localStorage.setItem('auth-token', response.data.token); // Сохраняем токен
       return {};
     } catch (error: any) {
@@ -47,7 +47,7 @@ class AuthClient {
   // Вход по паролю
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
     try {
-      const response = await axios.post(`${this.baseUrl}/login`, params);
+      const response = await axios.post(`${this.baseUrl}/admin`, params);
       localStorage.setItem('auth-token', response.data.token); // Сохраняем токен
       return {};
     } catch (error: any) {
