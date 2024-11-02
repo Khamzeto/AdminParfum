@@ -2,30 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import {
+  Box,
   Button,
   CircularProgress,
-  IconButton,
-  Typography,
-  TextField,
-  Grid,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Paper,
-  Box,
+  Grid,
+  IconButton,
   Pagination,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
+  Typography,
 } from '@mui/material';
-
-import axios from 'axios';
 import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import axios from 'axios';
 
 interface Note {
   _id: string;
@@ -35,7 +34,7 @@ interface Note {
 
 const NotesPage = () => {
   const [notes, setNotes] = useState<Note[]>([]);
-  console.log(notes)
+  console.log(notes);
   const [loading, setLoading] = useState<boolean>(true);
   const [selected, setSelected] = useState<string[]>([]);
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
@@ -43,7 +42,7 @@ const NotesPage = () => {
 
   // Состояния для редактирования ноты
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
-  const [editingNote, setEditingNote] = useState<{ newName: string, newImage?: string, _id: string } | null>(null);
+  const [editingNote, setEditingNote] = useState<{ newName: string; newImage?: string; _id: string } | null>(null);
 
   // Состояния для добавления ноты
   const [openAddDialog, setOpenAddDialog] = useState<boolean>(false);
@@ -59,14 +58,14 @@ const NotesPage = () => {
     setLoading(true);
     setNotes([]); // Сбрасываем предыдущие ноты перед новым запросом
     try {
-      const response = await axios.get('http://81.29.136.136:3001/notes/search', {
+      const response = await axios.get('https://hltback.parfumetrika.ru/notes/search', {
         params: {
           query: searchQuery || '',
           page,
           limit: itemsPerPage,
         },
       });
-  
+
       if (response.data.notes.length === 0) {
         setNotes([]); // Устанавливаем пустой массив, если ноты не найдены
       } else {
@@ -80,7 +79,6 @@ const NotesPage = () => {
       setLoading(false);
     }
   };
-  
 
   useEffect(() => {
     fetchNotes();
@@ -97,10 +95,7 @@ const NotesPage = () => {
     } else if (selectedIndex === selected.length - 1) {
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
 
     setSelected(newSelected);
@@ -115,11 +110,9 @@ const NotesPage = () => {
 
     try {
       if (deleteNoteId) {
-        await axios.delete(`http://81.29.136.136:3001/notes/${deleteNoteId}`);
+        await axios.delete(`https://hltback.parfumetrika.ru/notes/${deleteNoteId}`);
       } else {
-        await Promise.all(
-          selected.map((id) => axios.delete(`http://81.29.136.136:3001/notes/${id}`))
-        );
+        await Promise.all(selected.map((id) => axios.delete(`https://hltback.parfumetrika.ru/notes/${id}`)));
       }
       fetchNotes();
       setSelected([]);
@@ -152,7 +145,7 @@ const NotesPage = () => {
     setOpenEditDialog(true);
     setEditingNote(null);
     try {
-      const response = await axios.get(`http://81.29.136.136:3001/notes/${note_id}`);
+      const response = await axios.get(`https://hltback.parfumetrika.ru/notes/${note_id}`);
       setEditingNote({ newName: response.data.name, newImage: response.data.image, _id: response.data._id });
     } catch (error) {
       console.error('Ошибка при получении данных ноты:', error);
@@ -160,9 +153,7 @@ const NotesPage = () => {
     }
   };
 
-  const handleEditChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
+  const handleEditChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     if (editingNote) {
       const { name, value } = event.target;
       setEditingNote({
@@ -175,7 +166,7 @@ const NotesPage = () => {
   const handleSaveChanges = async () => {
     if (editingNote) {
       try {
-        await axios.put(`http://81.29.136.136:3001/notes/replace/${editingNote._id}`, editingNote);
+        await axios.put(`https://hltback.parfumetrika.ru/notes/replace/${editingNote._id}`, editingNote);
         setOpenEditDialog(false);
         fetchNotes();
       } catch (error) {
@@ -193,9 +184,7 @@ const NotesPage = () => {
     setOpenAddDialog(true);
   };
 
-  const handleAddChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
+  const handleAddChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     if (newNote) {
       const { name, value } = event.target;
       setNewNote({
@@ -208,7 +197,7 @@ const NotesPage = () => {
   const handleAddNote = async () => {
     if (newNote) {
       try {
-        await axios.post('http://81.29.136.136:3001/notes', newNote);
+        await axios.post('https://hltback.parfumetrika.ru/notes', newNote);
         setOpenAddDialog(false);
         fetchNotes();
       } catch (error) {
@@ -239,12 +228,7 @@ const NotesPage = () => {
       </form>
 
       <Box display="flex" gap={2} style={{ marginTop: '20px' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddClick}
-        >
+        <Button variant="contained" color="primary" startIcon={<Plus size={20} />} onClick={handleAddClick}>
           Добавить ноту
         </Button>
 
@@ -274,45 +258,40 @@ const NotesPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-              {Array.isArray(notes) && notes.length > 0 ? (
-  notes.map((note) => (
-    <TableRow key={note._id} selected={isSelected(note._id)}>
-      <TableCell>{note.name}</TableCell>
-      <TableCell>
-        {note.image && (
-          <img
-            src={note.image}
-            alt={note.name}
-            style={{ width: '50px', height: '50px', objectFit: 'cover' }}
-          />
-        )}
-      </TableCell>
-      <TableCell align="right">
-        <IconButton
-          color="primary"
-          aria-label="edit"
-          onClick={() => handleEditClick(note._id)}
-        >
-          <PencilSimple size={20} />
-        </IconButton>
-        <IconButton
-          color="secondary"
-          aria-label="delete"
-          onClick={() => handleDeleteIconClick(note._id)}
-        >
-          <Trash size={20} />
-        </IconButton>
-      </TableCell>
-    </TableRow>
-  ))
-) : (
-  <TableRow>
-    <TableCell colSpan={3} align="center">
-      {loading ? 'Загрузка...' : 'Ноты не найдены'}
-    </TableCell>
-  </TableRow>
-)}
-
+                {Array.isArray(notes) && notes.length > 0 ? (
+                  notes.map((note) => (
+                    <TableRow key={note._id} selected={isSelected(note._id)}>
+                      <TableCell>{note.name}</TableCell>
+                      <TableCell>
+                        {note.image && (
+                          <img
+                            src={note.image}
+                            alt={note.name}
+                            style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton color="primary" aria-label="edit" onClick={() => handleEditClick(note._id)}>
+                          <PencilSimple size={20} />
+                        </IconButton>
+                        <IconButton
+                          color="secondary"
+                          aria-label="delete"
+                          onClick={() => handleDeleteIconClick(note._id)}
+                        >
+                          <Trash size={20} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center">
+                      {loading ? 'Загрузка...' : 'Ноты не найдены'}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

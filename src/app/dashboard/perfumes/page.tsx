@@ -93,7 +93,7 @@ const PerfumesPage = () => {
   const fetchPerfumes = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://81.29.136.136:3001/perfumes/search', {
+      const response = await axios.get('https://hltback.parfumetrika.ru/perfumes/search', {
         params: {
           query: searchQuery || 'perfumes',
           page,
@@ -153,9 +153,9 @@ const PerfumesPage = () => {
 
     try {
       if (deletePerfumeId) {
-        await axios.delete(`http://81.29.136.136:3001/perfumes/${deletePerfumeId}`);
+        await axios.delete(`https://hltback.parfumetrika.ru/perfumes/${deletePerfumeId}`);
       } else {
-        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/perfumes/${id}`)));
+        await Promise.all(selected.map((id) => axios.delete(`https://hltback.parfumetrika.ru/perfumes/${id}`)));
       }
       fetchPerfumes();
       setSelected([]);
@@ -188,7 +188,7 @@ const PerfumesPage = () => {
     setOpenEditDialog(true);
     setEditingPerfume(null);
     try {
-      const response = await axios.get(`http://81.29.136.136:3001/perfumes/${perfume_id}`);
+      const response = await axios.get(`https://hltback.parfumetrika.ru/perfumes/${perfume_id}`);
       setEditingPerfume(response.data);
 
       // Устанавливаем текущие ноты в состояние
@@ -214,7 +214,7 @@ const PerfumesPage = () => {
   const handleSaveChanges = async () => {
     if (editingPerfume) {
       try {
-        await axios.put(`http://81.29.136.136:3001/perfumes/${editingPerfume._id}`, {
+        await axios.put(`https://hltback.parfumetrika.ru/perfumes/${editingPerfume._id}`, {
           ...editingPerfume,
           notes: {
             top_notes: selectedTopNotes.map((note) => note.name),
@@ -273,7 +273,7 @@ const PerfumesPage = () => {
   const handleAddPerfume = async () => {
     if (newPerfume) {
       try {
-        await axios.post('http://81.29.136.136:3001/perfumes', {
+        await axios.post('https://hltback.parfumetrika.ru/perfumes', {
           ...newPerfume,
           notes: {
             top_notes: newSelectedTopNotes.map((note) => note.name),
@@ -389,7 +389,7 @@ const PerfumesPage = () => {
                         src={
                           perfume.main_image.startsWith('http')
                             ? perfume.main_image
-                            : `http://81.29.136.136:3001/${perfume.main_image}`
+                            : `https://hltback.parfumetrika.ru/${perfume.main_image}`
                         }
                         alt={perfume.name}
                         style={{ width: '50px', height: '50px', objectFit: 'cover' }}

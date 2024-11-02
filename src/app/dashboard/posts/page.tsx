@@ -48,7 +48,7 @@ const ArticlesRequestsPage = () => {
   useEffect(() => {
     const fetchArticleRequests = async () => {
       try {
-        const response = await axios.get('http://81.29.136.136:3001/article/requests');
+        const response = await axios.get('https://hltback.parfumetrika.ru/article/requests');
         setRequests(response.data.requests);
       } catch (error) {
         console.error('Ошибка при получении заявок на статьи:', error);
@@ -71,7 +71,7 @@ const ArticlesRequestsPage = () => {
   };
   const handleApprove = async (id: string) => {
     try {
-      await axios.put(`http://81.29.136.136:3001/article/requests/approve/${id}`);
+      await axios.put(`https://hltback.parfumetrika.ru/article/requests/approve/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'approved' } : request))
       );
@@ -84,7 +84,7 @@ const ArticlesRequestsPage = () => {
 
   const handleReject = async (id: string) => {
     try {
-      await axios.put(`http://81.29.136.136:3001/article/requests/reject/${id}`);
+      await axios.put(`https://hltback.parfumetrika.ru/article/requests/reject/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'rejected' } : request))
       );
@@ -98,7 +98,7 @@ const ArticlesRequestsPage = () => {
   const handleMakePopular = async () => {
     if (!selectedArticleId || !popularityScore.trim()) return;
     try {
-      await axios.post(`http://81.29.136.136:3001/article/requests/${selectedArticleId}/popular`, {
+      await axios.post(`https://hltback.parfumetrika.ru/article/requests/${selectedArticleId}/popular`, {
         score: Number(popularityScore),
       });
       setRequests((prevRequests) =>
@@ -117,7 +117,7 @@ const ArticlesRequestsPage = () => {
   const handleUpdatePopularity = async () => {
     if (!selectedArticleId || !popularityScore.trim()) return;
     try {
-      await axios.put(`http://81.29.136.136:3001/article/requests/${selectedArticleId}/popular`, {
+      await axios.put(`https://hltback.parfumetrika.ru/article/requests/${selectedArticleId}/popular`, {
         score: Number(popularityScore),
       });
       setRequests((prevRequests) =>
@@ -135,7 +135,7 @@ const ArticlesRequestsPage = () => {
 
   const handleRemovePopularity = async (id: string) => {
     try {
-      await axios.put(`http://81.29.136.136:3001/article/requests/${id}/unpopular`);
+      await axios.put(`https://hltback.parfumetrika.ru/article/requests/${id}/unpopular`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, popularityScore: undefined } : request))
       );

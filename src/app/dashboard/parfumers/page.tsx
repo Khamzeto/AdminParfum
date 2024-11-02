@@ -63,7 +63,7 @@ const ParfumersPage = () => {
     setLoading(true);
     setParfumers([]); // Сбрасываем предыдущие парфюмеры перед новым запросом
     try {
-      const response = await axios.get('http://81.29.136.136:3001/parfumers/search', {
+      const response = await axios.get('https://hltback.parfumetrika.ru/parfumers/search', {
         params: {
           query: searchQuery || '',
           page,
@@ -115,9 +115,9 @@ const ParfumersPage = () => {
 
     try {
       if (deleteParfumerId) {
-        await axios.delete(`http://81.29.136.136:3001/parfumers/${deleteParfumerId}`);
+        await axios.delete(`https://hltback.parfumetrika.ru/parfumers/${deleteParfumerId}`);
       } else {
-        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/parfumers/${id}`)));
+        await Promise.all(selected.map((id) => axios.delete(`https://hltback.parfumetrika.ru/parfumers/${id}`)));
       }
       fetchParfumers();
       setSelected([]);
@@ -150,7 +150,7 @@ const ParfumersPage = () => {
     setOpenEditDialog(true);
     setEditingParfumer(null);
     try {
-      const response = await axios.get(`http://81.29.136.136:3001/parfumers/id/${parfumer_id}`);
+      const response = await axios.get(`https://hltback.parfumetrika.ru/parfumers/id/${parfumer_id}`);
       setEditingParfumer({
         newName: response.data.original,
         newSlug: response.data.slug,
@@ -176,7 +176,7 @@ const ParfumersPage = () => {
   const handleSaveChanges = async () => {
     if (editingParfumer) {
       try {
-        await axios.put(`http://81.29.136.136:3001/parfumers/${editingParfumer._id}`, {
+        await axios.put(`https://hltback.parfumetrika.ru/parfumers/${editingParfumer._id}`, {
           newName: editingParfumer.newName,
           newSlug: editingParfumer.newSlug,
           newRuName: editingParfumer.newRuName, // сохраняем русское имя
@@ -212,7 +212,7 @@ const ParfumersPage = () => {
   const handleAddParfumer = async () => {
     if (newParfumer) {
       try {
-        await axios.post('http://81.29.136.136:3001/parfumers/parfumers', {
+        await axios.post('https://hltback.parfumetrika.ru/parfumers/parfumers', {
           original: newParfumer.original,
           slug: newParfumer.slug,
           original_ru: newParfumer.original_ru, // передаем русское имя

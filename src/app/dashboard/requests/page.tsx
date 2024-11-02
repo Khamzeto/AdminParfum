@@ -54,7 +54,7 @@ const RequestsPage = () => {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://81.29.136.136:3001/requests', {
+        const response = await axios.get('https://hltback.parfumetrika.ru/requests', {
           params: {
             page,
             limit,
@@ -75,7 +75,7 @@ const RequestsPage = () => {
 
   const handleApprove = async (id: string) => {
     try {
-      await axios.put(`http://81.29.136.136:3001/requests/approve/${id}`);
+      await axios.put(`https://hltback.parfumetrika.ru/requests/approve/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'approved' } : request))
       );
@@ -88,7 +88,7 @@ const RequestsPage = () => {
 
   const handleReject = async (id: string) => {
     try {
-      await axios.put(`http://81.29.136.136:3001/requests/reject/${id}`);
+      await axios.put(`https://hltback.parfumetrika.ru/requests/reject/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'rejected' } : request))
       );

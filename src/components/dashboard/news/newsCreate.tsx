@@ -63,7 +63,7 @@ export default function NewsCreation() {
         const user = JSON.parse(storedUser);
 
         // Make the POST request using axios
-        const response = await axios.post('http://81.29.136.136:3001/news/requests', {
+        const response = await axios.post('https://hltback.parfumetrika.ru/news/requests', {
           title,
           description,
           content,

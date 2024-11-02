@@ -47,7 +47,7 @@ const NewsPage = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await axios.get('http://81.29.136.136:3001/news/requests');
+        const response = await axios.get('https://hltback.parfumetrika.ru/news/requests');
         setNews(response.data.requests || []); // Ensure the news is always an array
       } catch (error) {
         console.error('Ошибка при получении новостей:', error);
@@ -73,7 +73,7 @@ const NewsPage = () => {
   const handleMakePopular = async () => {
     if (!selectedNewsId || !popularityScore.trim()) return;
     try {
-      await axios.post(`http://81.29.136.136:3001/news/requests/${selectedNewsId}/popular`, {
+      await axios.post(`https://hltback.parfumetrika.ru/news/requests/${selectedNewsId}/popular`, {
         score: Number(popularityScore),
       });
       setNews((prevNews) =>
@@ -93,7 +93,7 @@ const NewsPage = () => {
   const handleUpdatePopularity = async () => {
     if (!selectedNewsId || !popularityScore.trim()) return;
     try {
-      await axios.put(`http://81.29.136.136:3001/news/${selectedNewsId}/popular`, {
+      await axios.put(`https://hltback.parfumetrika.ru/news/${selectedNewsId}/popular`, {
         score: Number(popularityScore),
       });
       setNews((prevNews) =>
@@ -112,7 +112,7 @@ const NewsPage = () => {
   // Remove popularity
   const handleRemovePopularity = async (id: string) => {
     try {
-      await axios.put(`http://81.29.136.136:3001/news/requests/${id}/unpopular`);
+      await axios.put(`https://hltback.parfumetrika.ru/news/requests/${id}/unpopular`);
       setNews((prevNews) => prevNews.map((item) => (item._id === id ? { ...item, popularityScore: undefined } : item)));
       setSnackbarMessage('Популярность новости убрана');
       setSnackbarOpen(true);
@@ -124,7 +124,7 @@ const NewsPage = () => {
   // Delete news
   const handleDeleteNews = async (id: string) => {
     try {
-      await axios.delete(`http://81.29.136.136:3001/news/requests/${id}`);
+      await axios.delete(`https://hltback.parfumetrika.ru/news/requests/${id}`);
       setNews((prevNews) => prevNews.filter((item) => item._id !== id));
       setSnackbarMessage('Новость удалена');
       setSnackbarOpen(true);

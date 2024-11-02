@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import axios from 'axios';
-import { TextField, Autocomplete, CircularProgress } from '@mui/material';
 
 // Компонент для автозаполнения нот
 const NoteSearchAutocomplete = ({ label, selectedNotes, onNotesChange }: any) => {
@@ -21,7 +21,7 @@ const NoteSearchAutocomplete = ({ label, selectedNotes, onNotesChange }: any) =>
 
     (async () => {
       try {
-        const response = await axios.get(`http://81.29.136.136:3001/notes/search`, {
+        const response = await axios.get(`https://hltback.parfumetrika.ru/notes/search`, {
           params: { query: inputValue },
         });
 

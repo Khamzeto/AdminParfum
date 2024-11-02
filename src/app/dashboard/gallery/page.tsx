@@ -45,7 +45,7 @@ const GalleryRequestsPage = () => {
   useEffect(() => {
     const fetchGalleryRequests = async () => {
       try {
-        const response = await axios.get('http://81.29.136.136:3001/gallery/gallery-requests');
+        const response = await axios.get('https://hltback.parfumetrika.ru/gallery/gallery-requests');
         setRequests(response.data.requests);
       } catch (error) {
         console.error('Ошибка при получении заявок на фото:', error);
@@ -59,7 +59,7 @@ const GalleryRequestsPage = () => {
 
   const handleApprove = async (id: string) => {
     try {
-      await axios.post(`http://81.29.136.136:3001/gallery/gallery-requests/approve/${id}`);
+      await axios.post(`https://hltback.parfumetrika.ru/gallery/gallery-requests/approve/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'approved' } : request))
       );
@@ -72,7 +72,7 @@ const GalleryRequestsPage = () => {
 
   const handleReject = async (id: string) => {
     try {
-      await axios.post(`http://81.29.136.136:3001/gallery/gallery-requests/reject/${id}`);
+      await axios.post(`https://hltback.parfumetrika.ru/gallery/gallery-requests/reject/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'rejected' } : request))
       );

@@ -61,7 +61,7 @@ const BrandsPage = () => {
     setLoading(true);
     setBrands([]); // Сбрасываем предыдущие бренды перед новым запросом
     try {
-      const response = await axios.get('http://81.29.136.136:3001/brands/searchBrands', {
+      const response = await axios.get('https://hltback.parfumetrika.ru/brands/searchBrands', {
         params: {
           query: searchQuery || 'a',
           page,
@@ -113,9 +113,9 @@ const BrandsPage = () => {
 
     try {
       if (deleteBrandId) {
-        await axios.delete(`http://81.29.136.136:3001/brands/brands/${deleteBrandId}`);
+        await axios.delete(`https://hltback.parfumetrika.ru/brands/brands/${deleteBrandId}`);
       } else {
-        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/brands/${id}`)));
+        await Promise.all(selected.map((id) => axios.delete(`https://hltback.parfumetrika.ru/brands/${id}`)));
       }
       fetchBrands();
       setSelected([]);
@@ -148,7 +148,7 @@ const BrandsPage = () => {
     setOpenEditDialog(true);
     setEditingBrand(null);
     try {
-      const response = await axios.get(`http://81.29.136.136:3001/brands/id/${brand_id}`);
+      const response = await axios.get(`https://hltback.parfumetrika.ru/brands/id/${brand_id}`);
       setEditingBrand({
         newName: response.data.original,
         newSlug: response.data.slug,
@@ -173,7 +173,7 @@ const BrandsPage = () => {
   const handleSaveChanges = async () => {
     if (editingBrand) {
       try {
-        await axios.put(`http://81.29.136.136:3001/brands/brands/${editingBrand._id}`, {
+        await axios.put(`https://hltback.parfumetrika.ru/brands/brands/${editingBrand._id}`, {
           newName: editingBrand.newName,
           newSlug: editingBrand.newSlug,
         });
@@ -207,7 +207,7 @@ const BrandsPage = () => {
   const handleAddBrand = async () => {
     if (newBrand) {
       try {
-        await axios.post('http://81.29.136.136:3001/brands/create', {
+        await axios.post('https://hltback.parfumetrika.ru/brands/create', {
           original: newBrand.original,
         });
         setOpenAddDialog(false);

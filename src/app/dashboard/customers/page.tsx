@@ -59,7 +59,7 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://81.29.136.136:3001/users', {
+      const response = await axios.get('https://hltback.parfumetrika.ru/users', {
         params: {
           page,
           limit: itemsPerPage,
@@ -114,9 +114,9 @@ const UsersPage = () => {
 
     try {
       if (deleteUserId) {
-        await axios.delete(`http://81.29.136.136:3001/users/${deleteUserId}`);
+        await axios.delete(`https://hltback.parfumetrika.ru/users/${deleteUserId}`);
       } else {
-        await Promise.all(selected.map((id) => axios.delete(`http://81.29.136.136:3001/users/${id}`)));
+        await Promise.all(selected.map((id) => axios.delete(`https://hltback.parfumetrika.ru/users/${id}`)));
       }
       fetchUsers();
       setSelected([]);
@@ -141,7 +141,7 @@ const UsersPage = () => {
     setOpenEditDialog(true);
     setEditingUser(null);
     try {
-      const response = await axios.get(`http://81.29.136.136:3001/users/${userId}`);
+      const response = await axios.get(`https://hltback.parfumetrika.ru/users/${userId}`);
       setEditingUser(response.data);
       setRole(response.data.roles ? response.data.roles.join(', ') : ''); // Устанавливаем роль для редактирования
     } catch (error) {
@@ -167,10 +167,10 @@ const UsersPage = () => {
   const handleSaveChanges = async () => {
     if (editingUser) {
       try {
-        await axios.put(`http://81.29.136.136:3001/users/${editingUser._id}`, editingUser);
+        await axios.put(`https://hltback.parfumetrika.ru/users/${editingUser._id}`, editingUser);
         // После сохранения отправляем запрос на обновление роли
         if (role) {
-          await axios.post('http://81.29.136.136:3001/auth/assign-role', {
+          await axios.post('https://hltback.parfumetrika.ru/auth/assign-role', {
             userId: editingUser._id,
             role,
           });
@@ -206,7 +206,7 @@ const UsersPage = () => {
   const handleAddUser = async () => {
     if (newUser) {
       try {
-        await axios.post('http://81.29.136.136:3001/users', newUser);
+        await axios.post('https://hltback.parfumetrika.ru/users', newUser);
         setOpenAddDialog(false);
         fetchUsers();
       } catch (error) {
