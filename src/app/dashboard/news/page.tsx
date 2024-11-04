@@ -33,7 +33,7 @@ interface News {
 }
 
 const NewsPage = () => {
-  const [news, setNews] = useState<News[]>([]); // Initialize as an empty array
+  const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -43,12 +43,12 @@ const NewsPage = () => {
   const [popularityScore, setPopularityScore] = useState('');
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
 
-  // Fetching news data
+  // Получение данных новостей
   useEffect(() => {
     const fetchNews = async () => {
       try {
         const response = await axios.get('https://hltback.parfumetrika.ru/news/requests');
-        setNews(response.data.requests || []); // Ensure the news is always an array
+        setNews(response.data.requests || []);
       } catch (error) {
         console.error('Ошибка при получении новостей:', error);
       } finally {
@@ -69,7 +69,7 @@ const NewsPage = () => {
     setPopularityScore('');
   };
 
-  // Mark news as popular
+  // Отметить новость как популярную
   const handleMakePopular = async () => {
     if (!selectedNewsId || !popularityScore.trim()) return;
     try {
@@ -89,7 +89,7 @@ const NewsPage = () => {
     }
   };
 
-  // Update the popularity score of news
+  // Обновить балл популярности
   const handleUpdatePopularity = async () => {
     if (!selectedNewsId || !popularityScore.trim()) return;
     try {
@@ -109,7 +109,7 @@ const NewsPage = () => {
     }
   };
 
-  // Remove popularity
+  // Убрать популярность
   const handleRemovePopularity = async (id: string) => {
     try {
       await axios.put(`https://hltback.parfumetrika.ru/news/requests/${id}/unpopular`);
@@ -121,10 +121,10 @@ const NewsPage = () => {
     }
   };
 
-  // Delete news
+  // Удалить новость
   const handleDeleteNews = async (id: string) => {
     try {
-      await axios.delete(`https://hltback.parfumetrika.ru/news/requests/${id}`);
+      await axios.delete(`https://hltback.parfumetrika.ru/news/${id}`);
       setNews((prevNews) => prevNews.filter((item) => item._id !== id));
       setSnackbarMessage('Новость удалена');
       setSnackbarOpen(true);
@@ -179,7 +179,7 @@ const NewsPage = () => {
 
         <Typography variant="body1" dangerouslySetInnerHTML={{ __html: fullScreenNews?.content || '' }} />
 
-        <Box mt={4}>
+        <Box mt={4} display="flex" gap="10px">
           <Button
             variant="contained"
             onClick={() => handleOpenModal(fullScreenNews._id)}
@@ -189,6 +189,17 @@ const NewsPage = () => {
             }}
           >
             Сделать популярной
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => handleDeleteNews(fullScreenNews._id)}
+            style={{
+              backgroundColor: '#d32f2f',
+              color: '#ffffff',
+            }}
+            startIcon={<Trash size={20} />}
+          >
+            Удалить
           </Button>
         </Box>
 
@@ -260,20 +271,20 @@ const NewsPage = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={2}>
         {filteredNews.map((item) => (
-          <Grid item xs={12} md={6} key={item._id}>
-            <Card>
-              <CardContent>
+          <Grid item xs={12} sm={6} md={4} key={item._id}>
+            <Card sx={{ minHeight: '750px', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h6" gutterBottom>
                   {item.title}
                 </Typography>
-                <Typography variant="body1" gutterBottom>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
                   {item.description}
                 </Typography>
 
                 {item.coverImage && (
-                  <Box mt={2} mb={2}>
+                  <Box mt={1} mb={1}>
                     <img
                       src={item.coverImage}
                       alt="Обложка новости"
@@ -287,20 +298,15 @@ const NewsPage = () => {
                 </Button>
               </CardContent>
 
-              <CardActions
-                style={{ paddingLeft: '8px', display: 'flex', flexDirection: 'column', alignItems: 'start' }}
-              >
+              <CardActions sx={{ padding: '8px', flexDirection: 'column' }}>
                 {item.popularityScore !== undefined && (
-                  <Box display="flex" alignItems="center" style={{ paddingBottom: '20px', paddingLeft: '14px' }}>
+                  <Box display="flex" alignItems="center" mb={1}>
                     <Star size={24} weight="fill" color="#ffd700" style={{ marginRight: '8px' }} />
                     <Typography style={{ color: '#ffd700' }}>{item.popularityScore}</Typography>
                     <Button
                       variant="text"
-                      onClick={() => {
-                        console.log(item._id); // Logs the ID in the console
-                        handleOpenModal(item._id);
-                      }}
-                      style={{ marginLeft: '10px' }}
+                      onClick={() => handleOpenModal(item._id)}
+                      style={{ marginLeft: '10px', color: '#ffd700' }}
                     >
                       Обновить популярность
                     </Button>
@@ -313,16 +319,31 @@ const NewsPage = () => {
                     </Button>
                   </Box>
                 )}
-
-                {/* Delete Button */}
-                <Button
-                  variant="text"
-                  onClick={() => handleDeleteNews(item._id)}
-                  style={{ color: '#d32f2f', marginLeft: '10px' }}
-                >
-                  <Trash size={20} style={{ marginRight: '5px' }} />
-                  Удалить новость
-                </Button>
+                <Box display="flex" gap="8px" flexWrap="wrap">
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenModal(item._id)}
+                    style={{
+                      backgroundColor: '#ffb74d',
+                      color: '#ffffff',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Сделать популярной
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleDeleteNews(item._id)}
+                    style={{
+                      backgroundColor: '#d32f2f',
+                      color: '#ffffff',
+                      marginBottom: '4px',
+                    }}
+                    startIcon={<Trash size={16} />}
+                  >
+                    Удалить
+                  </Button>
+                </Box>
               </CardActions>
             </Card>
           </Grid>

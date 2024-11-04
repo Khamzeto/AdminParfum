@@ -5,11 +5,9 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
-import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import { alpha, useTheme } from '@mui/material/styles';
 import type { SxProps } from '@mui/material/styles';
-import { ArrowClockwise as ArrowClockwiseIcon } from '@phosphor-icons/react/dist/ssr/ArrowClockwise';
 import { ArrowRight as ArrowRightIcon } from '@phosphor-icons/react/dist/ssr/ArrowRight';
 import type { ApexOptions } from 'apexcharts';
 
@@ -17,37 +15,44 @@ import { Chart } from '@/components/core/chart';
 
 export interface SalesProps {
   chartSeries: { name: string; data: number[] }[];
+  months: string[]; // Массив с названиями месяцев
   sx?: SxProps;
 }
 
-export function Sales({ chartSeries, sx }: SalesProps): React.JSX.Element {
-  const chartOptions = useChartOptions();
+export function Sales({ chartSeries, months, sx }: SalesProps): React.JSX.Element {
+  const chartOptions = useChartOptions(months);
 
   return (
     <Card sx={sx}>
-      <CardHeader
-        action={
-          <Button color="inherit" size="small" startIcon={<ArrowClockwiseIcon fontSize="var(--icon-fontSize-md)" />}>
-            Sync
-          </Button>
-        }
-        title="Sales"
-      />
       <CardContent>
         <Chart height={350} options={chartOptions} series={chartSeries} type="bar" width="100%" />
       </CardContent>
       <Divider />
-      <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button color="inherit" endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />} size="small">
-          Overview
-        </Button>
-      </CardActions>
     </Card>
   );
 }
 
-function useChartOptions(): ApexOptions {
+function useChartOptions(months: string[]): ApexOptions {
   const theme = useTheme();
+
+  // Словарь для перевода названий месяцев на русский
+  const monthTranslations: { [key: string]: string } = {
+    January: 'Январь',
+    February: 'Февраль',
+    March: 'Март',
+    April: 'Апрель',
+    May: 'Май',
+    June: 'Июнь',
+    July: 'Июль',
+    August: 'Август',
+    September: 'Сентябрь',
+    October: 'Октябрь',
+    November: 'Ноябрь',
+    December: 'Декабрь',
+  };
+
+  // Преобразуем английские названия месяцев в русские
+  const translatedMonths = months.map((month) => monthTranslations[month] || month);
 
   return {
     chart: { background: 'transparent', stacked: false, toolbar: { show: false } },
@@ -67,12 +72,12 @@ function useChartOptions(): ApexOptions {
     xaxis: {
       axisBorder: { color: theme.palette.divider, show: true },
       axisTicks: { color: theme.palette.divider, show: true },
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      categories: translatedMonths, // Используем русские названия месяцев
       labels: { offsetY: 5, style: { colors: theme.palette.text.secondary } },
     },
     yaxis: {
       labels: {
-        formatter: (value) => (value > 0 ? `${value}K` : `${value}`),
+        formatter: (value) => (value >= 1000 ? `${value / 1000}K` : `${value}`),
         offsetX: -10,
         style: { colors: theme.palette.text.secondary },
       },

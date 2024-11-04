@@ -19,7 +19,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { ArrowLeft, CheckCircle, Hourglass, Star, XSquare } from '@phosphor-icons/react';
+import { ArrowLeft, CheckCircle, Hourglass, Star, Trash, XSquare } from '@phosphor-icons/react';
 import axios from 'axios';
 
 interface ArticleRequest {
@@ -69,6 +69,7 @@ const ArticlesRequestsPage = () => {
     setOpenModal(false);
     setPopularityScore('');
   };
+
   const handleApprove = async (id: string) => {
     try {
       await axios.put(`https://hltback.parfumetrika.ru/article/requests/approve/${id}`);
@@ -92,6 +93,17 @@ const ArticlesRequestsPage = () => {
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Ошибка при отклонении заявки на статью:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`https://hltback.parfumetrika.ru/article/delete/${id}`);
+      setRequests((prevRequests) => prevRequests.filter((request) => request._id !== id));
+      setSnackbarMessage('Статья успешно удалена');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Ошибка при удалении статьи:', error);
     }
   };
 
@@ -223,9 +235,23 @@ const ArticlesRequestsPage = () => {
             style={{
               backgroundColor: '#ffb74d',
               color: '#ffffff',
+              marginTop: '10px',
             }}
           >
             Сделать популярной
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => handleDelete(fullScreenArticle._id)}
+            style={{
+              backgroundColor: '#d32f2f',
+              color: '#ffffff',
+              marginTop: '10px',
+              marginLeft: '10px',
+            }}
+            startIcon={<Trash size={20} />}
+          >
+            Удалить
           </Button>
         </Box>
 
@@ -316,20 +342,20 @@ const ArticlesRequestsPage = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={2}>
         {filteredRequests.map((request) => (
-          <Grid item xs={12} md={6} key={request._id}>
-            <Card>
+          <Grid item xs={12} sm={6} md={4} key={request._id}>
+            <Card sx={{ padding: '10px', minHeight: '680px' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   {request.title}
                 </Typography>
-                <Typography variant="body1" gutterBottom>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
                   {request.description}
                 </Typography>
 
                 {request.coverImage && (
-                  <Box mt={2} mb={2}>
+                  <Box mt={1} mb={1}>
                     <img
                       src={request.coverImage}
                       alt="Обложка статьи"
@@ -344,128 +370,101 @@ const ArticlesRequestsPage = () => {
               </CardContent>
 
               <CardActions
-                style={{
-                  paddingLeft: '8px',
+                sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'left',
-                  alignItems: 'start',
+                  alignItems: 'flex-start',
                 }}
               >
-                <div>
+                {request.status === 'pending' && (
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <Hourglass size={24} weight="fill" color="#ff9800" style={{ marginRight: '8px' }} />
+                    <Typography style={{ color: '#ff9800' }}>В ожидании</Typography>
+                  </Box>
+                )}
+                {request.status === 'approved' && (
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <CheckCircle size={24} weight="fill" color="#388e3c" style={{ marginRight: '8px' }} />
+                    <Typography style={{ color: '#388e3c' }}>Одобрено</Typography>
+                  </Box>
+                )}
+                {request.status === 'rejected' && (
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <XSquare size={24} weight="fill" color="#d32f2f" style={{ marginRight: '8px' }} />
+                    <Typography style={{ color: '#d32f2f' }}>Отклонено</Typography>
+                  </Box>
+                )}
+                {request.popularityScore !== undefined && (
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <Star size={24} weight="fill" color="#ffd700" style={{ marginRight: '8px' }} />
+                    <Typography style={{ color: '#ffd700' }}>{request.popularityScore}</Typography>
+                    <Button
+                      variant="text"
+                      onClick={() => handleOpenModal(request._id)}
+                      style={{ marginLeft: '10px', color: '#ffd700' }}
+                    >
+                      Обновить популярность
+                    </Button>
+                    <Button
+                      variant="text"
+                      onClick={() => handleRemovePopularity(request._id)}
+                      style={{ marginLeft: '10px', color: '#d32f2f' }}
+                    >
+                      Убрать популярность
+                    </Button>
+                  </Box>
+                )}
+                <Box display="flex" gap="8px" flexWrap="wrap">
                   {request.status === 'pending' && (
                     <>
-                      <div
+                      <Button
+                        variant="contained"
+                        onClick={() => handleApprove(request._id)}
                         style={{
-                          paddingBottom: '20px',
-                          paddingLeft: '14px',
+                          backgroundColor: '#1976d2',
+                          color: '#ffffff',
+                          marginBottom: '4px',
                         }}
                       >
-                        <Box
-                          display="flex"
-                          alignItems="center"
-                          style={{
-                            paddingBottom: '20px',
-                            paddingLeft: '14px',
-                          }}
-                        >
-                          <Hourglass size={24} weight="fill" color="#ff9800" style={{ marginRight: '8px' }} />
-                          <Typography style={{ color: '#ff9800' }}>В ожидании</Typography>
-                        </Box>
-                        <div>
-                          <Button
-                            variant="contained"
-                            onClick={() => handleApprove(request._id)}
-                            style={{
-                              marginRight: '10px',
-                              backgroundColor: '#1976d2',
-                              color: '#ffffff',
-                            }}
-                          >
-                            Принять
-                          </Button>
-                          <Button
-                            variant="contained"
-                            onClick={() => handleReject(request._id)}
-                            style={{
-                              backgroundColor: '#d32f2f',
-                              color: '#ffffff',
-                            }}
-                          >
-                            Отклонить
-                          </Button>
-
-                          <Button
-                            variant="contained"
-                            onClick={() => handleOpenModal(request._id)}
-                            style={{
-                              backgroundColor: '#ffb74d',
-                              color: '#ffffff',
-                              marginLeft: '10px',
-                            }}
-                          >
-                            Сделать популярной
-                          </Button>
-                        </div>
-                      </div>
+                        Принять
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleReject(request._id)}
+                        style={{
+                          backgroundColor: '#d32f2f',
+                          color: '#ffffff',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        Отклонить
+                      </Button>
                     </>
                   )}
-                  {request.status === 'approved' && (
-                    <Box
-                      display="flex"
-                      alignItems="center"
-                      style={{
-                        paddingBottom: '20px',
-                        paddingLeft: '14px',
-                      }}
-                    >
-                      <CheckCircle size={24} weight="fill" color="#388e3c" style={{ marginRight: '8px' }} />
-                      <Typography style={{ color: '#388e3c' }}>Одобрено</Typography>
-                    </Box>
-                  )}
-                  {request.status === 'rejected' && (
-                    <Box
-                      display="flex"
-                      alignItems="center"
-                      style={{
-                        paddingBottom: '20px',
-                        paddingLeft: '14px',
-                      }}
-                    >
-                      <XSquare size={24} weight="fill" color="#d32f2f" style={{ marginRight: '8px' }} />
-                      <Typography style={{ color: '#d32f2f' }}>Отклонено</Typography>
-                    </Box>
-                  )}
-                </div>
-                <div>
-                  {request.popularityScore !== undefined && (
-                    <Box
-                      display="flex"
-                      alignItems="center"
-                      style={{
-                        paddingBottom: '20px',
-                        paddingLeft: '14px',
-                      }}
-                    >
-                      <Star size={24} weight="fill" color="#ffd700" style={{ marginRight: '8px' }} />
-                      <Typography style={{ color: '#ffd700' }}>{request.popularityScore}</Typography>
-                      <Button
-                        variant="text"
-                        onClick={() => handleOpenModal(request._id)}
-                        style={{ marginLeft: '10px', color: '#ffd700' }}
-                      >
-                        Обновить популярность
-                      </Button>
-                      <Button
-                        variant="text"
-                        onClick={() => handleRemovePopularity(request._id)}
-                        style={{ marginLeft: '10px', color: '#d32f2f' }}
-                      >
-                        Убрать популярность
-                      </Button>
-                    </Box>
-                  )}
-                </div>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenModal(request._id)}
+                    style={{
+                      backgroundColor: '#ffb74d',
+                      color: '#ffffff',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Сделать популярной
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleDelete(request._id)}
+                    style={{
+                      backgroundColor: '#d32f2f',
+                      color: '#ffffff',
+                      marginBottom: '4px',
+                    }}
+                    startIcon={<Trash size={16} />}
+                  >
+                    Удалить
+                  </Button>
+                </Box>
               </CardActions>
             </Card>
           </Grid>

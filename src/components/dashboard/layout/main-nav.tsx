@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import Avatar from '@mui/material/Avatar';
 import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
@@ -11,6 +12,7 @@ import { Bell as BellIcon } from '@phosphor-icons/react/dist/ssr/Bell';
 import { List as ListIcon } from '@phosphor-icons/react/dist/ssr/List';
 import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 import { Users as UsersIcon } from '@phosphor-icons/react/dist/ssr/Users';
+import { IconHtml, IconWebhook } from '@tabler/icons-react';
 
 import { usePopover } from '@/hooks/use-popover';
 
@@ -55,24 +57,16 @@ export function MainNav(): React.JSX.Element {
             </Tooltip>
           </Stack>
           <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-            <Tooltip title="Contacts">
-              <IconButton>
-                <UsersIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Notifications">
-              <Badge badgeContent={4} color="success" variant="dot">
-                <IconButton>
-                  <BellIcon />
-                </IconButton>
+            <Tooltip title="Основной сайт">
+              <Badge>
+                <Link href="https://parfumetrika.ru" passHref legacyBehavior>
+                  <IconButton component="a" target="_blank" rel="noopener noreferrer">
+                    <IconHtml />
+                  </IconButton>
+                </Link>
               </Badge>
             </Tooltip>
-            <Avatar
-              onClick={userPopover.handleOpen}
-              ref={userPopover.anchorRef}
-              src="/assets/avatar.png"
-              sx={{ cursor: 'pointer' }}
-            />
+            <Avatar onClick={userPopover.handleOpen} ref={userPopover.anchorRef} sx={{ cursor: 'pointer' }} />
           </Stack>
         </Stack>
       </Box>

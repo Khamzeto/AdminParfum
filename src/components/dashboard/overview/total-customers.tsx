@@ -27,7 +27,7 @@ export function TotalCustomers({ diff, trend, sx, value }: TotalCustomersProps):
           <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }} spacing={3}>
             <Stack spacing={1}>
               <Typography color="text.secondary" variant="overline">
-                Total Customers
+                Всего пользователей
               </Typography>
               <Typography variant="h4">{value}</Typography>
             </Stack>
@@ -35,19 +35,6 @@ export function TotalCustomers({ diff, trend, sx, value }: TotalCustomersProps):
               <UsersIcon fontSize="var(--icon-fontSize-lg)" />
             </Avatar>
           </Stack>
-          {diff ? (
-            <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-              <Stack sx={{ alignItems: 'center' }} direction="row" spacing={0.5}>
-                <TrendIcon color={trendColor} fontSize="var(--icon-fontSize-md)" />
-                <Typography color={trendColor} variant="body2">
-                  {diff}%
-                </Typography>
-              </Stack>
-              <Typography color="text.secondary" variant="caption">
-                Since last month
-              </Typography>
-            </Stack>
-          ) : null}
         </Stack>
       </CardContent>
     </Card>

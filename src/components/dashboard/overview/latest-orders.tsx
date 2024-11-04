@@ -1,10 +1,10 @@
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardHeader from '@mui/material/CardHeader';
-import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import type { SxProps } from '@mui/material/styles';
 import Table from '@mui/material/Table';
@@ -15,55 +15,48 @@ import TableRow from '@mui/material/TableRow';
 import { ArrowRight as ArrowRightIcon } from '@phosphor-icons/react/dist/ssr/ArrowRight';
 import dayjs from 'dayjs';
 
-const statusMap = {
-  pending: { label: 'Pending', color: 'warning' },
-  delivered: { label: 'Delivered', color: 'success' },
-  refunded: { label: 'Refunded', color: 'error' },
-} as const;
-
-export interface Order {
+export interface Review {
   id: string;
-  customer: { name: string };
-  amount: number;
-  status: 'pending' | 'delivered' | 'refunded';
+  user: { name: string };
+  review: string;
   createdAt: Date;
 }
 
 export interface LatestOrdersProps {
-  orders?: Order[];
+  orders?: Review[];
   sx?: SxProps;
 }
 
 export function LatestOrders({ orders = [], sx }: LatestOrdersProps): React.JSX.Element {
+  console.log(orders);
+  const router = useRouter(); // Инициализируем useRouter
+
+  const handleViewAllClick = () => {
+    router.push('/dashboard/reviews'); // Переход на /dashboard/posts при нажатии
+  };
   return (
     <Card sx={sx}>
-      <CardHeader title="Latest orders" />
+      <CardHeader title="Последние отзывы" />
       <Divider />
       <Box sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Order</TableCell>
-              <TableCell>Customer</TableCell>
-              <TableCell sortDirection="desc">Date</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell>ID</TableCell>
+              <TableCell>Пользователь</TableCell>
+              <TableCell>Дата</TableCell>
+              <TableCell>Отзыв</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.map((order) => {
-              const { label, color } = statusMap[order.status] ?? { label: 'Unknown', color: 'default' };
-
-              return (
-                <TableRow hover key={order.id}>
-                  <TableCell>{order.id}</TableCell>
-                  <TableCell>{order.customer.name}</TableCell>
-                  <TableCell>{dayjs(order.createdAt).format('MMM D, YYYY')}</TableCell>
-                  <TableCell>
-                    <Chip color={color} label={label} size="small" />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {orders.map((order) => (
+              <TableRow hover key={order.id}>
+                <TableCell>{order.id}</TableCell>
+                <TableCell>{order.customer?.name || 'Unknown'}</TableCell>
+                <TableCell>{dayjs(order.createdAt).format('MMM D, YYYY')}</TableCell>
+                <TableCell>{order.review || 'No review content'}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </Box>
@@ -74,8 +67,9 @@ export function LatestOrders({ orders = [], sx }: LatestOrdersProps): React.JSX.
           endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />}
           size="small"
           variant="text"
+          onClick={handleViewAllClick}
         >
-          View all
+          Посмотреть все
         </Button>
       </CardActions>
     </Card>

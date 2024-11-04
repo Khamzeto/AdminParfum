@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -28,9 +29,14 @@ export interface LatestProductsProps {
 }
 
 export function LatestProducts({ products = [], sx }: LatestProductsProps): React.JSX.Element {
+  const router = useRouter(); // Инициализируем useRouter
+
+  const handleViewAllClick = () => {
+    router.push('/dashboard/posts'); // Переход на /dashboard/posts при нажатии
+  };
   return (
     <Card sx={sx}>
-      <CardHeader title="Latest products" />
+      <CardHeader title="Последние посты" />
       <Divider />
       <List>
         {products.map((product, index) => (
@@ -55,9 +61,6 @@ export function LatestProducts({ products = [], sx }: LatestProductsProps): Reac
               secondary={`Updated ${dayjs(product.updatedAt).format('MMM D, YYYY')}`}
               secondaryTypographyProps={{ variant: 'body2' }}
             />
-            <IconButton edge="end">
-              <DotsThreeVerticalIcon weight="bold" />
-            </IconButton>
           </ListItem>
         ))}
       </List>
@@ -68,8 +71,9 @@ export function LatestProducts({ products = [], sx }: LatestProductsProps): Reac
           endIcon={<ArrowRightIcon fontSize="var(--icon-fontSize-md)" />}
           size="small"
           variant="text"
+          onClick={handleViewAllClick}
         >
-          View all
+          Посмотреть все
         </Button>
       </CardActions>
     </Card>
