@@ -8,6 +8,7 @@ export const navItems = [
   { key: 'brands', title: 'Бренды', href: paths.dashboard.brands },
   { key: 'notes', title: 'Ноты', href: paths.dashboard.notes },
   { key: 'parfumers', title: 'Парфюмеры', href: paths.dashboard.parfumers },
+  { key: 'shops', title: 'Магазины', href: paths.dashboard.shops },
   { key: 'requests', title: 'Запросы', href: paths.dashboard.requests },
   { key: 'gallery', title: 'Галерея', href: paths.dashboard.gallery },
   { key: 'posts', title: 'Посты', href: paths.dashboard.posts },

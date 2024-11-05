@@ -15,6 +15,7 @@ export const paths = {
     news: '/dashboard/news',
     comments: '/dashboard/reviews',
     newscomments: '/dashboard/news-comments',
+    shops: '/dashboard/shops',
     articlecomments: '/dashboard/article-comments',
     parfumers: '/dashboard/parfumers',
     users: '/dashboard/users',
