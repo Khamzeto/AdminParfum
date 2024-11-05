@@ -124,7 +124,7 @@ const NewsPage = () => {
   // Удалить новость
   const handleDeleteNews = async (id: string) => {
     try {
-      await axios.delete(`https://hltback.parfumetrika.ru/news/${id}`);
+      await axios.delete(`https://hltback.parfumetrika.ru/news/requests/${id}`);
       setNews((prevNews) => prevNews.filter((item) => item._id !== id));
       setSnackbarMessage('Новость удалена');
       setSnackbarOpen(true);

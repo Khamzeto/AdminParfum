@@ -32,7 +32,8 @@ interface User {
   username: string;
   email: string;
   createdAt: string;
-  roles?: string[]; // Добавляем поле ролей
+  roles?: string[];
+  isVerified: boolean; // Добавляем поле для галочки
 }
 
 const UsersPage = () => {
@@ -42,16 +43,13 @@ const UsersPage = () => {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
 
-  // Состояния для редактирования пользователя
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string>(''); // Для роли
+  const [role, setRole] = useState<string>('');
 
-  // Состояния для добавления пользователя
   const [openAddDialog, setOpenAddDialog] = useState<boolean>(false);
   const [newUser, setNewUser] = useState<User | null>(null);
 
-  // Параметры пагинации
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const itemsPerPage = 20;
@@ -65,7 +63,6 @@ const UsersPage = () => {
           limit: itemsPerPage,
         },
       });
-
       setUsers(response.data);
       setTotalPages(response.data.totalPages);
     } catch (error) {
@@ -143,7 +140,7 @@ const UsersPage = () => {
     try {
       const response = await axios.get(`https://hltback.parfumetrika.ru/users/${userId}`);
       setEditingUser(response.data);
-      setRole(response.data.roles ? response.data.roles.join(', ') : ''); // Устанавливаем роль для редактирования
+      setRole(response.data.roles ? response.data.roles.join(', ') : '');
     } catch (error) {
       console.error('Ошибка при получении данных пользователя:', error);
       setOpenEditDialog(false);
@@ -154,7 +151,7 @@ const UsersPage = () => {
     if (editingUser) {
       const { name, value } = event.target;
       if (name === 'roles') {
-        setRole(value); // Обновляем роль отдельно
+        setRole(value);
       } else {
         setEditingUser({
           ...editingUser,
@@ -168,7 +165,6 @@ const UsersPage = () => {
     if (editingUser) {
       try {
         await axios.put(`https://hltback.parfumetrika.ru/users/${editingUser._id}`, editingUser);
-        // После сохранения отправляем запрос на обновление роли
         if (role) {
           await axios.post('https://hltback.parfumetrika.ru/auth/assign-role', {
             userId: editingUser._id,
@@ -189,6 +185,7 @@ const UsersPage = () => {
       username: '',
       email: '',
       createdAt: new Date().toISOString(),
+      isVerified: false, // Устанавливаем по умолчанию
     });
     setOpenAddDialog(true);
   };
@@ -212,6 +209,17 @@ const UsersPage = () => {
       } catch (error) {
         console.error('Ошибка при добавлении пользователя:', error);
       }
+    }
+  };
+
+  const toggleVerification = async (userId: string, currentStatus: boolean) => {
+    try {
+      await axios.put(`https://hltback.parfumetrika.ru/users/verified/${userId}/toggle-verification`);
+      setUsers((prevUsers) =>
+        prevUsers.map((user) => (user._id === userId ? { ...user, isVerified: !currentStatus } : user))
+      );
+    } catch (error) {
+      console.error('Ошибка при изменении статуса верификации:', error);
     }
   };
 
@@ -257,6 +265,7 @@ const UsersPage = () => {
                   <TableCell>Email</TableCell>
                   <TableCell>Дата создания</TableCell>
                   <TableCell>Роли</TableCell>
+                  <TableCell>Верификация</TableCell>
                   <TableCell align="right">Действия</TableCell>
                 </TableRow>
               </TableHead>
@@ -270,6 +279,12 @@ const UsersPage = () => {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>{user.roles ? user.roles.join(', ') : 'Нет ролей'}</TableCell>
+                    <TableCell>
+                      <Checkbox
+                        checked={user.isVerified}
+                        onChange={() => toggleVerification(user._id, user.isVerified)}
+                      />
+                    </TableCell>
                     <TableCell align="right">
                       <IconButton color="primary" aria-label="edit" onClick={() => handleEditClick(user._id)}>
                         <PencilSimple size={20} />
