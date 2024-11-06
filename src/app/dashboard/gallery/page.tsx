@@ -11,13 +11,13 @@ import {
   CircularProgress,
   Container,
   Grid,
-  ImageList,
   ImageListItem,
   Snackbar,
   Typography,
 } from '@mui/material';
 import { CheckCircle } from '@phosphor-icons/react/dist/ssr/CheckCircle';
 import { Hourglass } from '@phosphor-icons/react/dist/ssr/Hourglass';
+import { Trash } from '@phosphor-icons/react/dist/ssr/Trash';
 import { XSquare } from '@phosphor-icons/react/dist/ssr/XSquare';
 import axios from 'axios';
 
@@ -83,6 +83,17 @@ const GalleryRequestsPage = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`https://hltback.parfumetrika.ru/gallery/gallery-requests/${id}`);
+      setRequests((prevRequests) => prevRequests.filter((request) => request._id !== id));
+      setSnackbarMessage('Заявка на фото удалена');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Ошибка при удалении заявки на фото:', error);
+    }
+  };
+
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
@@ -95,13 +106,12 @@ const GalleryRequestsPage = () => {
     );
   }
 
-  // Фильтруем и сортируем заявки на основе выбранного фильтра
   const filteredRequests = requests
     .filter((request) => {
       if (filter === 'all') return true;
       return request.status === filter;
     })
-    .reverse(); // Переворачиваем массив, чтобы новые элементы были первыми
+    .reverse();
 
   return (
     <Container>
@@ -109,7 +119,6 @@ const GalleryRequestsPage = () => {
         Заявки на добавление фото в галерею
       </Typography>
 
-      {/* Кнопки фильтрации */}
       <Box mb={4} mt={4}>
         <Button
           variant={filter === 'all' ? 'contained' : 'outlined'}
@@ -149,8 +158,6 @@ const GalleryRequestsPage = () => {
                 <Typography variant="h6" gutterBottom>
                   Заявка на добавление фото для парфюма: {request.perfumeId.name} ({request.perfumeId.brand})
                 </Typography>
-
-                {/* Отображаем загруженные изображения */}
                 <div style={{ marginTop: '30px' }}>
                   {request.images.map((image, index) => (
                     <ImageListItem style={{ borderRadius: '14px' }} key={index}>
@@ -162,73 +169,59 @@ const GalleryRequestsPage = () => {
               <CardActions style={{ paddingLeft: '8px' }}>
                 {request.status === 'pending' && (
                   <>
-                    <div
-                      style={{
-                        paddingBottom: '20px',
-                        paddingLeft: '14px',
-                      }}
+                    <Button
+                      variant="contained"
+                      onClick={() => handleApprove(request._id)}
+                      style={{ marginRight: '10px', backgroundColor: '#1976d2', color: '#ffffff' }}
                     >
-                      <Button
-                        variant="contained"
-                        onClick={() => handleApprove(request._id)}
-                        style={{
-                          marginRight: '10px',
-                          backgroundColor: '#1976d2',
-                          color: '#ffffff',
-                        }}
-                      >
-                        Принять
-                      </Button>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleReject(request._id)}
-                        style={{
-                          backgroundColor: '#d32f2f',
-                          color: '#ffffff',
-                        }}
-                      >
-                        Отклонить
-                      </Button>
-                    </div>
-                    <Box
-                      display="flex"
-                      alignItems="center"
-                      style={{
-                        paddingBottom: '20px',
-                        paddingLeft: '14px',
-                      }}
+                      Принять
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => handleReject(request._id)}
+                      style={{ backgroundColor: '#d32f2f', color: '#ffffff', marginRight: '10px' }}
                     >
-                      <Hourglass size={24} weight="fill" color="#ff9800" style={{ marginRight: '8px' }} />
-                      <Typography style={{ color: '#ff9800' }}>В ожидании обработки</Typography>
-                    </Box>
+                      Отклонить
+                    </Button>
                   </>
                 )}
-                {request.status === 'approved' && (
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    style={{
-                      paddingBottom: '20px',
-                      paddingLeft: '14px',
-                    }}
-                  >
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<Trash size={24} />}
+                  onClick={() => handleDelete(request._id)}
+                >
+                  Удалить
+                </Button>
+                <div style={{ paddingLeft: '14px', alignItems: 'center', display: 'flex' }}>
+                  {request.status === 'approved' && (
                     <CheckCircle size={24} weight="fill" color="#388e3c" style={{ marginRight: '8px' }} />
-                    <Typography style={{ color: '#388e3c' }}>Одобрено</Typography>
-                  </Box>
-                )}
-                {request.status === 'rejected' && (
-                  <Box
-                    display="flex"
-                    alignItems="center"
+                  )}
+                  {request.status === 'pending' && (
+                    <Hourglass size={24} weight="fill" color="#ff9800" style={{ marginRight: '8px' }} />
+                  )}
+                  {request.status === 'rejected' && (
+                    <XSquare size={24} weight="fill" color="#d32f2f" style={{ marginRight: '8px' }} />
+                  )}
+                  <Typography
                     style={{
-                      paddingBottom: '20px',
-                      paddingLeft: '14px',
+                      display: 'flex',
+
+                      color:
+                        request.status === 'approved'
+                          ? '#388e3c'
+                          : request.status === 'pending'
+                            ? '#ff9800'
+                            : '#d32f2f',
                     }}
                   >
-                    <XSquare size={24} weight="fill" color="#d32f2f" style={{ marginRight: '8px' }} />
-                    <Typography style={{ color: '#d32f2f' }}>Отклонено</Typography>
-                  </Box>
-                )}
+                    {request.status === 'approved'
+                      ? 'Одобрено'
+                      : request.status === 'pending'
+                        ? 'В ожидании обработки'
+                        : 'Отклонено'}
+                  </Typography>
+                </div>
               </CardActions>
             </Card>
           </Grid>
