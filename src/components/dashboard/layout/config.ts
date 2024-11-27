@@ -11,6 +11,7 @@ export const navItems = [
   { key: 'shops', title: 'Магазины', href: paths.dashboard.shops },
   { key: 'requests', title: 'Запросы', href: paths.dashboard.requests },
   { key: 'gallery', title: 'Галерея', href: paths.dashboard.gallery },
+  { key: 'main-image', title: 'Главное фото', href: paths.dashboard.mainImage },
   { key: 'posts', title: 'Посты', href: paths.dashboard.posts },
   { key: 'news', title: 'Новости', href: paths.dashboard.news },
   { key: 'comments', title: 'Отзывы', href: paths.dashboard.comments },

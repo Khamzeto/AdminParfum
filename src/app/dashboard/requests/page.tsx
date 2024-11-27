@@ -11,6 +11,7 @@ import {
   Container,
   Grid,
   Snackbar,
+  TextField,
   Typography,
 } from '@mui/material';
 import { CheckCircle } from '@phosphor-icons/react/dist/ssr/CheckCircle';
@@ -47,6 +48,9 @@ const RequestsPage = () => {
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1); // Current page
   const [totalPages, setTotalPages] = useState(1); // Total pages
+
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
+  const [editChanges, setEditChanges] = useState<any>({});
 
   const limit = 10; // Number of requests per page
 
@@ -101,8 +105,112 @@ const RequestsPage = () => {
     }
   };
 
+  const handleUpdateRequest = async (id: string) => {
+    try {
+      const response = await axios.put(`https://hltback.parfumetrika.ru/requests/${id}`, {
+        changes: editChanges,
+      });
+      setRequests((prevRequests) =>
+        prevRequests.map((request) =>
+          request._id === id ? { ...request, changes: response.data.request.changes } : request
+        )
+      );
+      setEditingRequestId(null);
+      setEditChanges({});
+      setSnackbarMessage('Заявка успешно обновлена');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Ошибка при обновлении заявки:', error);
+      setSnackbarMessage('Ошибка при обновлении заявки');
+      setSnackbarOpen(true);
+    }
+  };
+
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
+  };
+
+  const startEditing = (id: string, changes: any) => {
+    setEditingRequestId(id);
+    setEditChanges(JSON.parse(JSON.stringify(changes))); // Глубокая копия
+  };
+
+  const cancelEditing = () => {
+    setEditingRequestId(null);
+    setEditChanges({});
+  };
+
+  // Функция для установки значения по пути
+  const setValueByPath = (obj: any, path: string[], value: any) => {
+    let current = obj;
+    for (let i = 0; i < path.length - 1; i++) {
+      if (!(path[i] in current)) {
+        current[path[i]] = {};
+      }
+      current = current[path[i]];
+    }
+    current[path[path.length - 1]] = value;
+  };
+
+  // Функция для рендеринга полей редактирования
+  const renderEditFields = (changes: any, path: string[] = []) => {
+    return Object.keys(changes).map((key) => {
+      const value = changes[key];
+      const currentPath = [...path, key];
+      const fieldKey = currentPath.join('.');
+
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // Если значение — объект, рекурсивно рендерим вложенные поля
+        return (
+          <Box key={fieldKey} mb={2}>
+            <Typography variant="subtitle1" gutterBottom>
+              {key}
+            </Typography>
+            {renderEditFields(value, currentPath)}
+          </Box>
+        );
+      } else if (Array.isArray(value)) {
+        // Если значение — массив, отображаем его как строку, объединенную запятыми
+        return (
+          <Box key={fieldKey} mb={2}>
+            <Typography variant="body2">{key}</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={value.join(', ')}
+              onChange={(e) => {
+                const newValue = e.target.value.split(',').map((item) => item.trim());
+                setEditChanges((prev: any) => {
+                  const updatedChanges = { ...prev };
+                  setValueByPath(updatedChanges, currentPath, newValue);
+                  return updatedChanges;
+                });
+              }}
+            />
+          </Box>
+        );
+      } else {
+        // Если значение — примитив, отображаем обычное текстовое поле
+        return (
+          <Box key={fieldKey} mb={2}>
+            <Typography variant="body2">{key}</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={value || ''}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setEditChanges((prev: any) => {
+                  const updatedChanges = { ...prev };
+                  setValueByPath(updatedChanges, currentPath, newValue);
+                  return updatedChanges;
+                });
+              }}
+            />
+          </Box>
+        );
+      }
+    });
   };
 
   const highlightChanges = (original: any = {}, changes: any, parentKey = '') => {
@@ -111,59 +219,71 @@ const RequestsPage = () => {
     return Object.keys(changes)
       .map((key) => {
         if (keysToExclude.includes(key)) {
-          return null; // Skip this key
+          return null; // Пропускаем ключи, которые не нужно отображать
         }
 
         const originalValue = original[key];
         const newValue = changes[key];
         const fullKey = parentKey ? `${parentKey}.${key}` : key;
 
-        // Skip arrays of objects
-        if (Array.isArray(newValue) && newValue.some((item) => typeof item === 'object' && item !== null)) {
-          return null;
-        }
+        if (Array.isArray(newValue)) {
+          // Обработка массивов
+          if (Array.isArray(originalValue)) {
+            const addedValues = newValue.filter((item: any) => !originalValue.includes(item));
+            const removedValues = originalValue.filter((item: any) => !newValue.includes(item));
 
-        if (Array.isArray(originalValue) && Array.isArray(newValue)) {
-          const addedValues = newValue.filter((item: any) => !originalValue.includes(item));
-          const removedValues = originalValue.filter((item: any) => !newValue.includes(item));
-
-          if (addedValues.length > 0 || removedValues.length > 0) {
+            if (addedValues.length > 0 || removedValues.length > 0) {
+              return (
+                <Typography key={fullKey}>
+                  <strong>{fullKey}:</strong>{' '}
+                  {addedValues.length > 0 && (
+                    <span style={{ color: 'green' }}>Добавлено: {addedValues.join(', ')}</span>
+                  )}
+                  {removedValues.length > 0 && (
+                    <span style={{ color: 'red' }}> Удалено: {removedValues.join(', ')}</span>
+                  )}
+                </Typography>
+              );
+            } else {
+              return null;
+            }
+          } else {
+            // Если оригинальное значение не массив, просто отображаем новое значение
             return (
               <Typography key={fullKey}>
-                <strong>{fullKey}:</strong>{' '}
-                {addedValues.length > 0 && <span style={{ color: 'green' }}>Добавлено: {addedValues.join(', ')}</span>}
-                {removedValues.length > 0 && <span style={{ color: 'red' }}> Удалено: {removedValues.join(', ')}</span>}
+                <strong>{fullKey}:</strong> <span style={{ color: 'green' }}>{newValue.join(', ')}</span>
+              </Typography>
+            );
+          }
+        } else if (typeof newValue === 'object' && newValue !== null) {
+          // Обработка вложенных объектов
+          const nestedChanges = highlightChanges(originalValue || {}, newValue, fullKey);
+          if (nestedChanges && nestedChanges.length > 0) {
+            return (
+              <React.Fragment key={fullKey}>
+                <Typography variant="subtitle1" gutterBottom>
+                  <strong>{fullKey}:</strong>
+                </Typography>
+                {nestedChanges}
+              </React.Fragment>
+            );
+          } else {
+            return null;
+          }
+        } else {
+          // Обработка примитивных значений
+          if (originalValue !== newValue) {
+            return (
+              <Typography key={fullKey}>
+                <strong>{fullKey}:</strong> <span style={{ color: 'green' }}>{String(newValue)}</span>
               </Typography>
             );
           } else {
-            // No changes in array elements, skip displaying
             return null;
           }
-        }
-
-        if (typeof newValue === 'object' && newValue !== null && !Array.isArray(newValue)) {
-          // Recursively process nested objects
-          const nestedChanges = highlightChanges(originalValue || {}, newValue, fullKey);
-          if (nestedChanges && nestedChanges.length > 0) {
-            return <React.Fragment key={fullKey}>{nestedChanges}</React.Fragment>;
-          } else {
-            // No changes in nested object properties
-            return null;
-          }
-        }
-
-        if (originalValue !== newValue) {
-          return (
-            <Typography key={fullKey}>
-              <strong>{fullKey}:</strong> <span style={{ color: 'green' }}>{String(newValue)}</span>
-            </Typography>
-          );
-        } else {
-          // No changes in primitive value
-          return null;
         }
       })
-      .filter(Boolean); // Remove any null or undefined values from the result
+      .filter(Boolean); // Удаляем null и undefined из результатов
   };
 
   const renderNotes = (notes: { top_notes: string[]; heart_notes: string[]; base_notes: string[] }) => (
@@ -198,6 +318,19 @@ const RequestsPage = () => {
     );
   }
 
+  const handleDeleteAll = async () => {
+    try {
+      await axios.delete('https://hltback.parfumetrika.ru/requests');
+      setRequests([]); // Очищаем список заявок после успешного удаления
+      setSnackbarMessage('Все заявки удалены');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Ошибка при удалении всех заявок:', error);
+      setSnackbarMessage('Ошибка при удалении всех заявок');
+      setSnackbarOpen(true);
+    }
+  };
+
   const filteredRequests = requests.sort((b, a) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return (
@@ -206,34 +339,39 @@ const RequestsPage = () => {
         Заявки на изменение парфюмов
       </Typography>
 
-      <Box mb={4} mt={4}>
-        <Button
-          variant={filter === 'all' ? 'contained' : 'outlined'}
-          onClick={() => setFilter('all')}
-          style={{ marginRight: '10px' }}
-        >
-          Все
-        </Button>
-        <Button
-          variant={filter === 'pending' ? 'contained' : 'outlined'}
-          onClick={() => setFilter('pending')}
-          style={{ marginRight: '10px' }}
-        >
-          Не обработанные
-        </Button>
-        <Button
-          variant={filter === 'approved' ? 'contained' : 'outlined'}
-          onClick={() => setFilter('approved')}
-          style={{ marginRight: '10px' }}
-        >
-          Принятые
-        </Button>
-        <Button
-          variant={filter === 'rejected' ? 'contained' : 'outlined'}
-          onClick={() => setFilter('rejected')}
-          style={{ marginRight: '10px' }}
-        >
-          Отклоненные
+      <Box mb={4} mt={4} display="flex" justifyContent="space-between">
+        <Box>
+          <Button
+            variant={filter === 'all' ? 'contained' : 'outlined'}
+            onClick={() => setFilter('all')}
+            style={{ marginRight: '10px' }}
+          >
+            Все
+          </Button>
+          <Button
+            variant={filter === 'pending' ? 'contained' : 'outlined'}
+            onClick={() => setFilter('pending')}
+            style={{ marginRight: '10px' }}
+          >
+            Не обработанные
+          </Button>
+          <Button
+            variant={filter === 'approved' ? 'contained' : 'outlined'}
+            onClick={() => setFilter('approved')}
+            style={{ marginRight: '10px' }}
+          >
+            Принятые
+          </Button>
+          <Button
+            variant={filter === 'rejected' ? 'contained' : 'outlined'}
+            onClick={() => setFilter('rejected')}
+            style={{ marginRight: '10px' }}
+          >
+            Отклоненные
+          </Button>
+        </Box>
+        <Button variant="contained" color="error" onClick={handleDeleteAll} style={{ marginLeft: '10px' }}>
+          Удалить все заявки
         </Button>
       </Box>
 
@@ -267,10 +405,46 @@ const RequestsPage = () => {
                     </>
                   )}
 
-                  <Typography variant="subtitle1" gutterBottom>
-                    Измененные поля:
-                  </Typography>
-                  {changesContent.length > 0 ? changesContent : <Typography>Нет изменений.</Typography>}
+                  {editingRequestId === request._id ? (
+                    <>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Редактирование изменений:
+                      </Typography>
+                      {renderEditFields(editChanges)}
+                      <Box display="flex" gap="10px">
+                        <Button
+                          variant="contained"
+                          onClick={() => handleUpdateRequest(request._id)}
+                          style={{ backgroundColor: '#388e3c', color: '#ffffff' }}
+                        >
+                          Сохранить
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={cancelEditing}
+                          style={{ backgroundColor: '#d32f2f', color: '#ffffff' }}
+                        >
+                          Отменить
+                        </Button>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Измененные поля:
+                      </Typography>
+                      {changesContent.length > 0 ? changesContent : <Typography>Нет изменений.</Typography>}
+                      {request.status === 'pending' && (
+                        <Button
+                          variant="outlined"
+                          onClick={() => startEditing(request._id, request.changes)}
+                          style={{ marginTop: '10px' }}
+                        >
+                          Изменить
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </CardContent>
                 <CardActions style={{ paddingLeft: '8px' }}>
                   {request.status === 'pending' && (

@@ -9,6 +9,7 @@ export const paths = {
     perfumes: '/dashboard/perfumes',
     requests: '/dashboard/requests',
     gallery: '/dashboard/gallery',
+    mainImage: '/dashboard/main-image',
     posts: '/dashboard/posts',
     brands: '/dashboard/brands',
     notes: '/dashboard/notes',
