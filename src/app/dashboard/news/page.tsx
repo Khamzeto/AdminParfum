@@ -43,6 +43,10 @@ const NewsPage = () => {
   const [popularityScore, setPopularityScore] = useState('');
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
 
+  // Добавляем состояние для редактирования
+  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<any>({});
+
   // Получение данных новостей
   useEffect(() => {
     const fetchNews = async () => {
@@ -145,6 +149,35 @@ const NewsPage = () => {
     setFullScreenContentId(null);
   };
 
+  // Функции для редактирования
+  const startEditing = (id: string, newsItem: News) => {
+    setEditingNewsId(id);
+    setEditData({ ...newsItem }); // Копируем данные новости
+  };
+
+  const cancelEditing = () => {
+    setEditingNewsId(null);
+    setEditData({});
+  };
+
+  const handleUpdateNews = async () => {
+    if (!editingNewsId) return;
+    try {
+      await axios.put(`https://hltback.parfumetrika.ru/news/requests/${editingNewsId}`, {
+        title: editData.title,
+        description: editData.description,
+        content: editData.content,
+        coverImage: editData.coverImage,
+      });
+      setNews((prevNews) => prevNews.map((item) => (item._id === editingNewsId ? { ...item, ...editData } : item)));
+      setSnackbarMessage('Новость обновлена');
+      setSnackbarOpen(true);
+      cancelEditing();
+    } catch (error) {
+      console.error('Ошибка при обновлении новости:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -156,6 +189,12 @@ const NewsPage = () => {
   if (fullScreenContentId) {
     const fullScreenNews = news.find((item) => item._id === fullScreenContentId);
 
+    const isEditing = editingNewsId === fullScreenContentId;
+
+    if (!fullScreenNews) {
+      return <Typography>Новость не найдена</Typography>;
+    }
+
     return (
       <Container>
         <Button variant="outlined" onClick={handleBackToList} style={{ marginBottom: '20px' }}>
@@ -163,45 +202,122 @@ const NewsPage = () => {
           Назад
         </Button>
 
-        <Typography variant="h4" gutterBottom>
-          {fullScreenNews?.title}
-        </Typography>
-
-        {fullScreenNews?.coverImage && (
-          <Box mb={2}>
-            <img
-              src={fullScreenNews.coverImage}
-              alt="Обложка новости"
-              style={{ borderRadius: '8px', width: '100%', height: 'auto' }}
+        {isEditing ? (
+          <>
+            <TextField
+              label="Заголовок"
+              variant="outlined"
+              fullWidth
+              value={editData.title}
+              onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+              style={{ marginBottom: '20px' }}
             />
-          </Box>
+
+            <TextField
+              label="Описание"
+              variant="outlined"
+              fullWidth
+              value={editData.description}
+              onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+              style={{ marginBottom: '20px' }}
+            />
+
+            <TextField
+              label="Обложка (URL)"
+              variant="outlined"
+              fullWidth
+              value={editData.coverImage || ''}
+              onChange={(e) => setEditData({ ...editData, coverImage: e.target.value })}
+              style={{ marginBottom: '20px' }}
+            />
+
+            <TextField
+              label="Контент"
+              variant="outlined"
+              fullWidth
+              multiline
+              minRows={10}
+              value={editData.content}
+              onChange={(e) => setEditData({ ...editData, content: e.target.value })}
+              style={{ marginBottom: '20px' }}
+            />
+
+            <Box display="flex" gap="10px">
+              <Button
+                variant="contained"
+                onClick={handleUpdateNews}
+                style={{
+                  backgroundColor: '#388e3c',
+                  color: '#ffffff',
+                }}
+              >
+                Сохранить
+              </Button>
+              <Button
+                variant="contained"
+                onClick={cancelEditing}
+                style={{
+                  backgroundColor: '#d32f2f',
+                  color: '#ffffff',
+                }}
+              >
+                Отменить
+              </Button>
+            </Box>
+          </>
+        ) : (
+          <>
+            <Typography variant="h4" gutterBottom>
+              {fullScreenNews.title}
+            </Typography>
+
+            {fullScreenNews.coverImage && (
+              <Box mb={2}>
+                <img
+                  src={fullScreenNews.coverImage}
+                  alt="Обложка новости"
+                  style={{ borderRadius: '8px', width: '100%', height: 'auto' }}
+                />
+              </Box>
+            )}
+
+            <Typography variant="body1" dangerouslySetInnerHTML={{ __html: fullScreenNews.content || '' }} />
+
+            <Box mt={4} display="flex" gap="10px" flexWrap="wrap">
+              <Button
+                variant="contained"
+                onClick={() => handleOpenModal(fullScreenNews._id)}
+                style={{
+                  backgroundColor: '#ffb74d',
+                  color: '#ffffff',
+                }}
+              >
+                Сделать популярной
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => handleDeleteNews(fullScreenNews._id)}
+                style={{
+                  backgroundColor: '#d32f2f',
+                  color: '#ffffff',
+                }}
+                startIcon={<Trash size={20} />}
+              >
+                Удалить
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => startEditing(fullScreenNews._id, fullScreenNews)}
+                style={{
+                  backgroundColor: '#1976d2',
+                  color: '#ffffff',
+                }}
+              >
+                Изменить
+              </Button>
+            </Box>
+          </>
         )}
-
-        <Typography variant="body1" dangerouslySetInnerHTML={{ __html: fullScreenNews?.content || '' }} />
-
-        <Box mt={4} display="flex" gap="10px">
-          <Button
-            variant="contained"
-            onClick={() => handleOpenModal(fullScreenNews._id)}
-            style={{
-              backgroundColor: '#ffb74d',
-              color: '#ffffff',
-            }}
-          >
-            Сделать популярной
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => handleDeleteNews(fullScreenNews._id)}
-            style={{
-              backgroundColor: '#d32f2f',
-              color: '#ffffff',
-            }}
-            startIcon={<Trash size={20} />}
-          >
-            Удалить
-          </Button>
-        </Box>
 
         <Dialog open={openModal} onClose={handleCloseModal}>
           <DialogTitle>Добавить/Обновить популярность</DialogTitle>
@@ -272,82 +388,166 @@ const NewsPage = () => {
       </Box>
 
       <Grid container spacing={2}>
-        {filteredNews.map((item) => (
-          <Grid item xs={12} sm={6} md={4} key={item._id}>
-            <Card sx={{ minHeight: '750px', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" gutterBottom>
-                  {item.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {item.description}
-                </Typography>
+        {filteredNews.map((item) => {
+          const isEditing = editingNewsId === item._id;
 
-                {item.coverImage && (
-                  <Box mt={1} mb={1}>
-                    <img
-                      src={item.coverImage}
-                      alt="Обложка новости"
-                      style={{ borderRadius: '8px', width: '100%', height: 'auto' }}
-                    />
-                  </Box>
+          return (
+            <Grid item xs={12} sm={6} md={4} key={item._id}>
+              <Card sx={{ minHeight: '750px', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  {isEditing ? (
+                    <>
+                      <TextField
+                        label="Заголовок"
+                        variant="outlined"
+                        fullWidth
+                        value={editData.title}
+                        onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                        style={{ marginBottom: '10px' }}
+                      />
+
+                      <TextField
+                        label="Описание"
+                        variant="outlined"
+                        fullWidth
+                        value={editData.description}
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        style={{ marginBottom: '10px' }}
+                      />
+
+                      <TextField
+                        label="Обложка (URL)"
+                        variant="outlined"
+                        fullWidth
+                        value={editData.coverImage || ''}
+                        onChange={(e) => setEditData({ ...editData, coverImage: e.target.value })}
+                        style={{ marginBottom: '10px' }}
+                      />
+
+                      <TextField
+                        label="Контент"
+                        variant="outlined"
+                        fullWidth
+                        multiline
+                        minRows={4}
+                        value={editData.content}
+                        onChange={(e) => setEditData({ ...editData, content: e.target.value })}
+                        style={{ marginBottom: '10px' }}
+                      />
+
+                      <Box display="flex" gap="10px">
+                        <Button
+                          variant="contained"
+                          onClick={handleUpdateNews}
+                          style={{
+                            backgroundColor: '#388e3c',
+                            color: '#ffffff',
+                          }}
+                        >
+                          Сохранить
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={cancelEditing}
+                          style={{
+                            backgroundColor: '#d32f2f',
+                            color: '#ffffff',
+                          }}
+                        >
+                          Отменить
+                        </Button>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="h6" gutterBottom>
+                        {item.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {item.description}
+                      </Typography>
+
+                      {item.coverImage && (
+                        <Box mt={1} mb={1}>
+                          <img
+                            src={item.coverImage}
+                            alt="Обложка новости"
+                            style={{ borderRadius: '8px', width: '100%', height: 'auto' }}
+                          />
+                        </Box>
+                      )}
+
+                      <Button variant="text" onClick={() => handleViewContent(item._id)}>
+                        Посмотреть контент
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+
+                {!isEditing && (
+                  <CardActions sx={{ padding: '8px', flexDirection: 'column' }}>
+                    {item.popularityScore !== undefined && (
+                      <Box display="flex" alignItems="center" mb={1}>
+                        <Star size={24} weight="fill" color="#ffd700" style={{ marginRight: '8px' }} />
+                        <Typography style={{ color: '#ffd700' }}>{item.popularityScore}</Typography>
+                        <Button
+                          variant="text"
+                          onClick={() => handleOpenModal(item._id)}
+                          style={{ marginLeft: '10px', color: '#ffd700' }}
+                        >
+                          Обновить популярность
+                        </Button>
+                        <Button
+                          variant="text"
+                          onClick={() => handleRemovePopularity(item._id)}
+                          style={{ marginLeft: '10px', color: '#d32f2f' }}
+                        >
+                          Убрать популярность
+                        </Button>
+                      </Box>
+                    )}
+                    <Box display="flex" gap="8px" flexWrap="wrap">
+                      <Button
+                        variant="contained"
+                        onClick={() => handleOpenModal(item._id)}
+                        style={{
+                          backgroundColor: '#ffb74d',
+                          color: '#ffffff',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        Сделать популярной
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleDeleteNews(item._id)}
+                        style={{
+                          backgroundColor: '#d32f2f',
+                          color: '#ffffff',
+                          marginBottom: '4px',
+                        }}
+                        startIcon={<Trash size={16} />}
+                      >
+                        Удалить
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => startEditing(item._id, item)}
+                        style={{
+                          backgroundColor: '#1976d2',
+                          color: '#ffffff',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        Изменить
+                      </Button>
+                    </Box>
+                  </CardActions>
                 )}
-
-                <Button variant="text" onClick={() => handleViewContent(item._id)}>
-                  Посмотреть контент
-                </Button>
-              </CardContent>
-
-              <CardActions sx={{ padding: '8px', flexDirection: 'column' }}>
-                {item.popularityScore !== undefined && (
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <Star size={24} weight="fill" color="#ffd700" style={{ marginRight: '8px' }} />
-                    <Typography style={{ color: '#ffd700' }}>{item.popularityScore}</Typography>
-                    <Button
-                      variant="text"
-                      onClick={() => handleOpenModal(item._id)}
-                      style={{ marginLeft: '10px', color: '#ffd700' }}
-                    >
-                      Обновить популярность
-                    </Button>
-                    <Button
-                      variant="text"
-                      onClick={() => handleRemovePopularity(item._id)}
-                      style={{ marginLeft: '10px', color: '#d32f2f' }}
-                    >
-                      Убрать популярность
-                    </Button>
-                  </Box>
-                )}
-                <Box display="flex" gap="8px" flexWrap="wrap">
-                  <Button
-                    variant="contained"
-                    onClick={() => handleOpenModal(item._id)}
-                    style={{
-                      backgroundColor: '#ffb74d',
-                      color: '#ffffff',
-                      marginBottom: '4px',
-                    }}
-                  >
-                    Сделать популярной
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => handleDeleteNews(item._id)}
-                    style={{
-                      backgroundColor: '#d32f2f',
-                      color: '#ffffff',
-                      marginBottom: '4px',
-                    }}
-                    startIcon={<Trash size={16} />}
-                  >
-                    Удалить
-                  </Button>
-                </Box>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
 
       <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar} message={snackbarMessage} />

@@ -30,8 +30,6 @@ import {
 } from '@mui/material';
 import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import axios from 'axios';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 
 import NoteSearchAutocomplete from '@/components/dashboard/perfumes/notes'; // Компонент для поиска нот
 
@@ -51,7 +49,12 @@ interface Perfume {
     heart_notes: string[];
     base_notes: string[];
   };
+  similar_perfumes: {
+    perfume_id: string;
+    main_image: string;
+  }[]; // Обновили тип поля similar_perfumes
 }
+
 interface Note {
   name: string;
 }
@@ -72,13 +75,17 @@ const PerfumesPage = () => {
   const [newPerfume, setNewPerfume] = useState<Perfume | null>(null);
 
   // Состояния для нот
-  const [selectedTopNotes, setSelectedTopNotes] = useState<any[]>([]);
-  const [selectedHeartNotes, setSelectedHeartNotes] = useState<any[]>([]);
-  const [selectedBaseNotes, setSelectedBaseNotes] = useState<any[]>([]);
+  const [selectedTopNotes, setSelectedTopNotes] = useState<Note[]>([]);
+  const [selectedHeartNotes, setSelectedHeartNotes] = useState<Note[]>([]);
+  const [selectedBaseNotes, setSelectedBaseNotes] = useState<Note[]>([]);
 
-  const [newSelectedTopNotes, setNewSelectedTopNotes] = useState<any[]>([]);
-  const [newSelectedHeartNotes, setNewSelectedHeartNotes] = useState<any[]>([]);
-  const [newSelectedBaseNotes, setNewSelectedBaseNotes] = useState<any[]>([]);
+  const [newSelectedTopNotes, setNewSelectedTopNotes] = useState<Note[]>([]);
+  const [newSelectedHeartNotes, setNewSelectedHeartNotes] = useState<Note[]>([]);
+  const [newSelectedBaseNotes, setNewSelectedBaseNotes] = useState<Note[]>([]);
+
+  // Состояния для похожих парфюмов
+  const [similarPerfumes, setSimilarPerfumes] = useState<{ perfume_id: string; main_image: string }[]>([]);
+  const [newSimilarPerfumes, setNewSimilarPerfumes] = useState<{ perfume_id: string; main_image: string }[]>([]);
 
   // Параметры пагинации
   const [page, setPage] = useState<number>(1);
@@ -178,10 +185,8 @@ const PerfumesPage = () => {
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const query = formData.get('search') as string;
-    setSearchQuery(query);
     setPage(1);
+    fetchPerfumes();
   };
 
   const handleEditClick = async (perfume_id: string) => {
@@ -195,6 +200,9 @@ const PerfumesPage = () => {
       setSelectedTopNotes(response.data.notes.top_notes.map((note: string) => ({ name: note })));
       setSelectedHeartNotes(response.data.notes.heart_notes.map((note: string) => ({ name: note })));
       setSelectedBaseNotes(response.data.notes.base_notes.map((note: string) => ({ name: note })));
+
+      // Устанавливаем текущие похожие парфюмы
+      setSimilarPerfumes(response.data.similar_perfumes || []);
     } catch (error) {
       console.error('Ошибка при получении данных парфюма:', error);
       setOpenEditDialog(false);
@@ -221,6 +229,7 @@ const PerfumesPage = () => {
             heart_notes: selectedHeartNotes.map((note) => note.name),
             base_notes: selectedBaseNotes.map((note) => note.name),
           },
+          similar_perfumes: similarPerfumes,
         });
         setOpenEditDialog(false);
         fetchPerfumes();
@@ -253,10 +262,12 @@ const PerfumesPage = () => {
         heart_notes: [],
         base_notes: [],
       },
+      similar_perfumes: [],
     });
     setNewSelectedTopNotes([]);
     setNewSelectedHeartNotes([]);
     setNewSelectedBaseNotes([]);
+    setNewSimilarPerfumes([]);
     setOpenAddDialog(true);
   };
 
@@ -280,6 +291,7 @@ const PerfumesPage = () => {
             heart_notes: newSelectedHeartNotes.map((note) => note.name),
             base_notes: newSelectedBaseNotes.map((note) => note.name),
           },
+          similar_perfumes: newSimilarPerfumes,
         });
         setOpenAddDialog(false);
         fetchPerfumes();
@@ -299,20 +311,47 @@ const PerfumesPage = () => {
     }
   };
 
-  const handleAddNotesChange = (newNotes: any[], type: string) => {
-    switch (type) {
-      case 'top_notes':
-        setNewSelectedTopNotes(newNotes);
-        break;
-      case 'heart_notes':
-        setNewSelectedHeartNotes(newNotes);
-        break;
-      case 'base_notes':
-        setNewSelectedBaseNotes(newNotes);
-        break;
-      default:
-        break;
+  const handleAddNotesChange = (newNotes: Note[], type: string) => {
+    if (type === 'top_notes') {
+      setNewSelectedTopNotes(newNotes);
+    } else if (type === 'heart_notes') {
+      setNewSelectedHeartNotes(newNotes);
+    } else if (type === 'base_notes') {
+      setNewSelectedBaseNotes(newNotes);
     }
+  };
+
+  // Функции для управления похожими парфюмами
+  const handleSimilarPerfumesChange = (index: number, field: string, value: string) => {
+    const updatedSimilarPerfumes = [...similarPerfumes];
+    updatedSimilarPerfumes[index][field] = value;
+    setSimilarPerfumes(updatedSimilarPerfumes);
+  };
+
+  const addSimilarPerfume = () => {
+    setSimilarPerfumes([...similarPerfumes, { perfume_id: '', main_image: '' }]);
+  };
+
+  const removeSimilarPerfume = (index: number) => {
+    const updatedSimilarPerfumes = [...similarPerfumes];
+    updatedSimilarPerfumes.splice(index, 1);
+    setSimilarPerfumes(updatedSimilarPerfumes);
+  };
+
+  const handleNewSimilarPerfumesChange = (index: number, field: string, value: string) => {
+    const updatedSimilarPerfumes = [...newSimilarPerfumes];
+    updatedSimilarPerfumes[index][field] = value;
+    setNewSimilarPerfumes(updatedSimilarPerfumes);
+  };
+
+  const addNewSimilarPerfume = () => {
+    setNewSimilarPerfumes([...newSimilarPerfumes, { perfume_id: '', main_image: '' }]);
+  };
+
+  const removeNewSimilarPerfume = (index: number) => {
+    const updatedSimilarPerfumes = [...newSimilarPerfumes];
+    updatedSimilarPerfumes.splice(index, 1);
+    setNewSimilarPerfumes(updatedSimilarPerfumes);
   };
 
   return (
@@ -386,11 +425,7 @@ const PerfumesPage = () => {
                     </TableCell>
                     <TableCell>
                       <img
-                        src={
-                          perfume.main_image.startsWith('http')
-                            ? perfume.main_image
-                            : `https://hltback.parfumetrika.ru/${perfume.main_image}`
-                        }
+                        src={`https://parfumetrika.ru/${perfume.main_image}`}
                         alt={perfume.name}
                         style={{ width: '50px', height: '50px', objectFit: 'cover' }}
                       />
@@ -407,7 +442,7 @@ const PerfumesPage = () => {
                       <IconButton
                         color="secondary"
                         aria-label="delete"
-                        onClick={() => handleDeleteIconClick(perfume._id)}
+                        onClick={() => handleDeleteIconClick(perfume.perfume_id)}
                       >
                         <Trash size={20} />
                       </IconButton>
@@ -549,6 +584,41 @@ const PerfumesPage = () => {
                   onChange={handleEditChange}
                 />
               </Grid>
+
+              {/* Поля для похожих парфюмов */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1">Похожие парфюмы</Typography>
+              </Grid>
+              {similarPerfumes.map((similarPerfume, index) => (
+                <Grid container spacing={2} key={index}>
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      fullWidth
+                      label="ID парфюма"
+                      value={similarPerfume.perfume_id}
+                      onChange={(e) => handleSimilarPerfumesChange(index, 'perfume_id', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      fullWidth
+                      label="Изображение"
+                      value={similarPerfume.main_image}
+                      onChange={(e) => handleSimilarPerfumesChange(index, 'main_image', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={2}>
+                    <IconButton color="secondary" onClick={() => removeSimilarPerfume(index)}>
+                      <Trash size={20} />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              ))}
+              <Grid item xs={12}>
+                <Button variant="outlined" onClick={addSimilarPerfume}>
+                  Добавить похожий парфюм
+                </Button>
+              </Grid>
             </Grid>
           </DialogContent>
         ) : (
@@ -670,6 +740,41 @@ const PerfumesPage = () => {
                   value={newPerfume.main_image}
                   onChange={handleAddChange}
                 />
+              </Grid>
+
+              {/* Поля для похожих парфюмов */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1">Похожие парфюмы</Typography>
+              </Grid>
+              {newSimilarPerfumes.map((similarPerfume, index) => (
+                <Grid container spacing={2} key={index}>
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      fullWidth
+                      label="ID парфюма"
+                      value={similarPerfume.perfume_id}
+                      onChange={(e) => handleNewSimilarPerfumesChange(index, 'perfume_id', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      fullWidth
+                      label="Изображение"
+                      value={similarPerfume.main_image}
+                      onChange={(e) => handleNewSimilarPerfumesChange(index, 'main_image', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={2}>
+                    <IconButton color="secondary" onClick={() => removeNewSimilarPerfume(index)}>
+                      <Trash size={20} />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              ))}
+              <Grid item xs={12}>
+                <Button variant="outlined" onClick={addNewSimilarPerfume}>
+                  Добавить похожий парфюм
+                </Button>
               </Grid>
             </Grid>
           </DialogContent>

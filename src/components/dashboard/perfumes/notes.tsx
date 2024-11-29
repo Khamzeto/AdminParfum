@@ -3,9 +3,9 @@ import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import axios from 'axios';
 
 // Компонент для автозаполнения нот
-const NoteSearchAutocomplete = ({ label, selectedNotes, onNotesChange }: any) => {
+const NoteSearchAutocomplete = ({ label, selectedNotes, onNotesChange }) => {
   const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState<any[]>([]);
+  const [options, setOptions] = useState([]); // Инициализируем как пустой массив
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +26,8 @@ const NoteSearchAutocomplete = ({ label, selectedNotes, onNotesChange }: any) =>
         });
 
         if (active) {
-          setOptions(response.data);
+          // Устанавливаем options в массив notes из ответа
+          setOptions(response.data.notes || []);
         }
       } catch (error) {
         console.error('Ошибка при поиске нот:', error);
