@@ -59,7 +59,7 @@ const GalleryRequestsPage = () => {
 
   const handleApprove = async (id: string) => {
     try {
-      await axios.put(`https://hltback.parfumetrika.ru/gallery/gallery-requests/approve/${id}`);
+      await axios.post(`https://hltback.parfumetrika.ru/gallery/gallery-requests/approve/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'approved' } : request))
       );
@@ -72,7 +72,7 @@ const GalleryRequestsPage = () => {
 
   const handleReject = async (id: string) => {
     try {
-      await axios.put(`https://hltback.parfumetrika.ru/gallery/gallery-requests/reject/${id}`);
+      await axios.post(`https://hltback.parfumetrika.ru/gallery/gallery-requests/reject/${id}`);
       setRequests((prevRequests) =>
         prevRequests.map((request) => (request._id === id ? { ...request, status: 'rejected' } : request))
       );
