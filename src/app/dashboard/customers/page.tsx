@@ -261,6 +261,7 @@ const UsersPage = () => {
                       onChange={handleSelectAll}
                     />
                   </TableCell>
+                  <TableCell>id</TableCell>
                   <TableCell>Имя</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Дата создания</TableCell>
@@ -275,6 +276,7 @@ const UsersPage = () => {
                     <TableCell padding="checkbox">
                       <Checkbox checked={isSelected(user._id)} onChange={() => handleSelect(user._id)} />
                     </TableCell>
+                    <TableCell>{user._id}</TableCell>
                     <TableCell>{user.username}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>

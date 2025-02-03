@@ -153,7 +153,7 @@ const GalleryRequestsPage = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Заявка на добавление фото для парфюма: {request.perfumeId.name} ({request.perfumeId.brand})
+                  Заявка на добавление фото для парфюма: {request?.perfumeId?.name} ({request?.perfumeId?.brand})
                 </Typography>
                 <div style={{ marginTop: '30px' }}>
                   <ImageListItem style={{ borderRadius: '14px' }}>
