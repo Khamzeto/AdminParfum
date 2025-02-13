@@ -375,9 +375,7 @@ const NotesPage = () => {
                         {/* Допустим, на сервере файл хранится под 
                             https://parfumetrika.ru/note_images/Имя.jpg */}
                         <img
-                          src={`https://parfumetrika.ru/note_images/${encodeURIComponent(
-                            note.name.charAt(0).toUpperCase() + note.name.slice(1)
-                          )}.jpg`}
+                          src={`https://parfumetrika.ru/note_images/${encodeURIComponent(note.name)}.jpg`}
                           alt={note.name}
                           style={{ width: '50px', height: '50px', objectFit: 'cover' }}
                         />
